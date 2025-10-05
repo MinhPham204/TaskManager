@@ -1,10 +1,13 @@
 import React, { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { UserContext } from "../../context/userContext";
 import { SIDE_MENU_DATA, SIDE_MENU_USER_DATA } from "../../utils/data";
+import { useSelector, useDispatch } from 'react-redux';
+import { setUser, clearUser, fetchProfile } from '../../store/authSlice';
+
 
 const SideMenu = ({ activeMenu }) => {
-  const { user, clearUser } = useContext(UserContext);
+  const { user } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
   const [sideMenuData, setSideMenuData] = useState([]);
   const navigate = useNavigate();
 
@@ -18,7 +21,7 @@ const SideMenu = ({ activeMenu }) => {
 
   const handleLogout = () => {
     localStorage.clear();
-    clearUser();
+    dispatch(clearUser());
     navigate("/login");
   };
 

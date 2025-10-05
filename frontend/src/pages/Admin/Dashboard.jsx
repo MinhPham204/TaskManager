@@ -1,7 +1,8 @@
 import React, {useEffect, useState} from 'react';
 import  useUserAuth  from "../../hooks/useUserAuth";
 import { useContext } from "react";
-import {UserContext} from "../../context/userContext";
+import { useSelector, useDispatch } from 'react-redux';
+import { setUser, clearUser, fetchProfile } from '../../store/authSlice';
 import DashboardLayout from '../../components/layouts/DashboardLayout';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../../utils/axiosInstance';
@@ -14,7 +15,8 @@ import TaskListTable from '../../components/TaskListTable';
 
 const Dashboard = () => {
   useUserAuth();
-  const {user} = useContext(UserContext);
+  const { user, loading } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
 
   const navigate = useNavigate();
 

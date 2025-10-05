@@ -5,7 +5,8 @@ import ProfilePhotoSelector from "../../components/Inputs/ProfilePhotoSelector";
 import { validateEmail } from "../../utils/helper";
 import axiosInstance from "../../utils/axiosInstance";
 import { API_PATHS } from "../../utils/apiPaths";
-import { useUser } from "../../context/userContext";
+import { useSelector, useDispatch } from 'react-redux';
+import { setUser, clearUser, fetchProfile } from '../../store/authSlice';
 
 const SignUp = () => {
   const [step, setStep] = useState(1); // 1: nhập email, 2: verify otp, 3: thông tin khác
@@ -17,7 +18,8 @@ const SignUp = () => {
   const [error, setError] = useState("");
   const [verifiedToken, setVerifiedToken] = useState(null);
 
-  const {updateUser} = useUser();
+  const { user, loading } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
 const handleRegister = async (e) => {
@@ -29,13 +31,13 @@ const handleRegister = async (e) => {
   }
 
   setError("");
-  setStep(2); // 👉 Chuyển UI sang màn hình OTP ngay
+  setStep(2); // Chuyển UI sang màn hình OTP
 
   try {
     await axiosInstance.post(API_PATHS.AUTH.REGISTER, { email });
     // Nếu gọi thành công thì giữ nguyên step 2
   } catch (error) {
-    setStep(1); // 👉 Quay lại nhập email nếu lỗi
+    setStep(1); // Quay lại nhập email nếu lỗi
     if (error.response && error.response.data.message) {
       setError(error.response.data.message);
     } else {
@@ -61,8 +63,6 @@ const handleVerifyOtp = async (e) => {
 
     const token = response.data.verifiedToken;
     setVerifiedToken(token);
-
-    // Lưu đúng key
     localStorage.setItem("verifiedToken", token);
 
     setStep(3);
@@ -90,7 +90,7 @@ const handleFinalSignUp = async (e) => {
   setError("");
 
   try {
-    const token = localStorage.getItem("verifiedToken"); // ✅ lấy đúng key đã lưu ở step 2
+    const token = localStorage.getItem("verifiedToken"); // lấy đúng key đã lưu ở step 2
 
     const response = await axiosInstance.post(
       API_PATHS.AUTH.SIGNUP,
@@ -101,7 +101,7 @@ const handleFinalSignUp = async (e) => {
       },
       {
         headers: {
-          Authorization: `Bearer ${token}`, // ✅ gửi kèm verifiedToken
+          Authorization: `Bearer ${token}`, // gửi kèm verifiedToken
         },
       }
     );
@@ -112,7 +112,7 @@ const handleFinalSignUp = async (e) => {
 
     if (accessToken) {
       localStorage.setItem("token", accessToken);
-      updateUser(response.data);
+      dispatch(setUser(response.data));
 
       if (role === "admin") {
         navigate("/admin/dashboard");

@@ -1,9 +1,8 @@
 // hooks/useUserAuth.js
-import { useContext } from "react";
-import { UserContext } from "../context/userContext";
+import { useSelector } from "react-redux";
 
 const useUserAuth = () => {
-  return useContext(UserContext);
+  return useSelector((state) => state.auth);
 };
 
 export default useUserAuth;

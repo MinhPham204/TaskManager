@@ -1,4 +1,4 @@
-import React, {useState, useContext} from 'react'
+import React, {useState} from 'react'
 import AuthLayout from '../../components/layouts/AuthLayout'
 import { Link, useNavigate } from 'react-router-dom';
 import Input from "../../components/Inputs/Input"
@@ -6,14 +6,15 @@ import { validateEmail } from '../../utils/helper';
 import axios from 'axios';
 import axiosInstance from '../../utils/axiosInstance';
 import { API_PATHS } from '../../utils/apiPaths';
-import { UserContext } from '../../context/userContext';
+import { useDispatch } from 'react-redux';
+import { setUser } from '../../store/authSlice';
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
 
   const navigate = useNavigate();
-  const {updateUser} = useContext(UserContext);
+  const dispatch = useDispatch();
 
   //Handle Login Form Submit
   const handleLogin = async (e) => {
@@ -39,7 +40,7 @@ const Login = () => {
 
       if(token) {
         localStorage.setItem("token", token);
-        updateUser(response.data);
+        dispatch(setUser(response.data));
 
         if (role === "admin") {
           navigate("/admin/dashboard");
