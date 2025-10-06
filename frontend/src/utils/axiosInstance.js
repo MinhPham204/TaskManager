@@ -34,7 +34,7 @@ axiosInstance.interceptors.request.use(
 
 axiosInstance.interceptors.response.use(
     (response) => {
-        console.log("Axios Response:", response);
+        // console.log("Axios Response:", response);
 
         return response;
     },
