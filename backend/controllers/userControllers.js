@@ -10,7 +10,7 @@ const getUser = async (req, res) => {
         const userWithTaskCounts = await Promise.all(
             users.map(async(user) => {
             const pendingTasks = await Task.countDocuments({assignedTo: user._id, status: "Pending"});  
-            const inProgessTasks = await Task.countDocuments({assignedTo: user._id, status: "In Progress"});
+            const inProgressTasks = await Task.countDocuments({assignedTo: user._id, status: "In Progress"});
             const completedTasks = await Task.countDocuments({assignedTo: user._id, status: "Completed"});
 
             return {
