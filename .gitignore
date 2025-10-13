@@ -12,6 +12,12 @@ dist
 dist-ssr
 *.local
 
+backend/seed-data.js
+
+.env
+backend/.env
+frontend/.env
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

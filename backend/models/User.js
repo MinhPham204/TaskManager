@@ -7,6 +7,11 @@ const UserSchema = new mongoose.Schema(
     password: {type: String, required: true},
     profileImageUrl: {type: String, default: null},
     role: {type: String, enum: ["admin", "user"], default: "user"},
+    team: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Team",
+            required: true
+        },
     },
     {timestamps:true}
 );

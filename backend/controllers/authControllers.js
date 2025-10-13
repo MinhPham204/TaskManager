@@ -168,10 +168,10 @@ const updateUserProfile = async (req, res) => {
       user.profileImageUrl = req.body.profileImageUrl;
     }
 
-    if (req.body.password) {
-      const salt = await bcrypt.genSalt(10);
-      user.password = await bcrypt.hash(req.body.password, salt);
-    }
+    // if (req.body.password) {
+    //   const salt = await bcrypt.genSalt(10);
+    //   user.password = await bcrypt.hash(req.body.password, salt);
+    // }
 
     const updatedUser = await user.save();
 
@@ -188,4 +188,84 @@ const updateUserProfile = async (req, res) => {
   }
 };
 
-module.exports = { registerUser, verifyOtp, setPasswordUser, loginUser, getUserProfile, updateUserProfile };
+
+const changePassword = async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+        const userId = req.user._id;
+
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({ message: "Current and new passwords are required" });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        // So sánh mật khẩu hiện tại
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!isMatch) {
+            return res.status(401).json({ message: "Incorrect current password" });
+        }
+
+        // Hash và cập nhật mật khẩu mới
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(newPassword, salt);
+        await user.save();
+
+        res.json({ message: "Password updated successfully" });
+    } catch (error) {
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+};
+
+const forgotPassword = async (req, res) => {
+    try {
+        const { email } = req.body;
+        const user = await User.findOne({ email });
+
+        // Dù user không tồn tại, vẫn trả về thông báo thành công để bảo mật
+        if (!user) {
+            return res.json({ message: "If an account with that email exists, a password reset OTP has been sent." });
+        }
+
+        // Tạo OTP và lưu vào Redis với prefix khác để tránh xung đột
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        await redisClient.setEx(`reset-otp:${email}`, 300, otp); // Sống 5 phút
+
+        // Gửi email
+        await sendEmail(email, "Your Password Reset Code", `Your password reset OTP is: ${otp}\n\nThis code is only valid for 5 minutes`);
+
+        res.json({ message: "If an account with that email exists, a password reset OTP has been sent." });
+    } catch (err) {
+        res.status(500).json({ message: "Server error", error: err.message });
+    }
+};
+
+const resetPassword = async (req, res) => {
+    try {
+        const { email, otp, newPassword } = req.body;
+
+        // Xác minh OTP từ Redis
+        const storedOtp = await redisClient.get(`reset-otp:${email}`);
+        if (!storedOtp || storedOtp !== otp) {
+            return res.status(400).json({ message: "Invalid or expired OTP" });
+        }
+
+        // Xóa OTP sau khi dùng
+        await redisClient.del(`reset-otp:${email}`);
+
+        // Hash và cập nhật mật khẩu mới
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+        await User.updateOne({ email }, { password: hashedPassword });
+
+        res.json({ message: "Password has been reset successfully. You can now log in." });
+    } catch (err) {
+        res.status(500).json({ message: "Server error", error: err.message });
+    }
+};
+
+module.exports = { registerUser, verifyOtp, setPasswordUser, loginUser, getUserProfile, updateUserProfile, changePassword, forgotPassword, resetPassword };

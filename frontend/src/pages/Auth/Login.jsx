@@ -81,6 +81,14 @@ const Login = () => {
             placeholder=""
             type="password"
           />
+          <div className="text-right mt-1 mb-3">
+              <Link 
+                  to="/forgot-password" 
+                  className="text-sm font-medium text-primary underline"
+              >
+                  Forgot Password?
+              </Link>
+          </div>
           {error && <p className="text-red-500 text-xs pb-2.5">{error}</p>}
 
           <button type="submit" className="btn-primary">Login</button>

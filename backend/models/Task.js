@@ -18,8 +18,12 @@ const taskSchema = new mongoose.Schema(
         createdBy: {type:mongoose.Schema.Types.ObjectId, ref: "User"},
         attachments: [{type: String}],
         todoCheckList: [todoSchema],
-        progress: {type: Number, default: 0}
-
+        progress: {type: Number, default: 0},
+        team: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Team",
+            required: true
+        },
     },
     {timestamps: true}
 );

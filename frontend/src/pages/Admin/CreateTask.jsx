@@ -252,8 +252,8 @@ const CreateTask = () => {
                         </div>
                         <div className="mt-3 space-y-2">
                             {formData.attachments.map((link, index) => (
-                                <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-md border">
-                                    <a href={link} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline truncate ...">
+                                <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-md">
+                                    <a href={link} target="_blank" rel="noopener noreferrer" className="text-primary text-sm hover:underline truncate ...">
                                         <LuLink className="inline-block mr-2" />
                                         {link}
                                     </a>

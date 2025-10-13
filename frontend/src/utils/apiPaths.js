@@ -6,7 +6,10 @@ export const API_PATHS = {
         LOGIN: "/api/auth/login",
         GET_PROFILE: "/api/auth/profile",
         VERIFY_OTP: "/api/auth/verify-otp",
-        SIGNUP: "/api/auth/set-password"
+        SIGNUP: "/api/auth/set-password",
+        REQUEST_PASSWORD_RESET: "/api/auth/forgot-password",
+        RESET_PASSWORD: "/api/auth/reset-password",    
+        CHANGE_PASSWORD: "/api/auth/change-password",
     },
 
     USERS: {
@@ -28,6 +31,14 @@ export const API_PATHS = {
 
         UPDATE_TASK_STATUS: (taskId) => `/api/tasks/${taskId}/status`,
         UPDATE_TODO_CHECKLIST: (taskId) => `/api/tasks/${taskId}/todo`,
+    },
+
+    TEAM: {
+        CREATE_TEAM: "/api/teams",
+        GET_MY_TEAM_DETAILS: "/api/teams/my-team",
+        UPDATE_MY_TEAM_DETAILS: "/api/teams/my-team",
+        INVITE_MEMBER: "/api/teams/my-team/invitations",
+        REMOVE_MEMBER: (userId) => `/api/teams/my-team/members/${userId}`,
     },
 
     REPORTS: {

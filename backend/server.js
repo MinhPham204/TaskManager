@@ -9,6 +9,7 @@ const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
 const taskRoutes = require("./routes/taskRoutes");
 const reportRoutes = require("./routes/reportRoutes");
+const teamRoutes = require("./routes/teamRoutes");
 const app = express();
 
 // Load environment
@@ -33,7 +34,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/report", reportRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/tasks", taskRoutes);
-
+app.use("/api/teams", teamRoutes);
 
 
 // Start Server

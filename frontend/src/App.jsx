@@ -12,6 +12,8 @@ import PrivateRoute from "./routes/PrivateRoutes";
 import Dashboard from "./pages/Admin/Dashboard";
 import Login from "./pages/Auth/Login";
 import SignUp from "./pages/Auth/SignUp";
+import ForgotPassword from './pages/Auth/ForgotPassword';
+import Profile from './pages/Account/Profile'
 import ManageTasks from "./pages/Admin/ManageTasks";
 import CreateTask from "./pages/Admin/CreateTask";
 import ManageUsers from "./pages/Admin/ManageUsers";
@@ -21,6 +23,7 @@ import ViewTaskDetails from "./pages/User/ViewTaskDetails";
 import { fetchProfile } from './store/authSlice';
 import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
+
 
 
 const App = () => {
@@ -42,6 +45,8 @@ const App = () => {
           <Routes>
             <Route path="/login" element={<Login />}/>
             <Route path="/signup" element={<SignUp />}/>
+            <Route path="/forgot-password" element={<ForgotPassword />}/>
+            <Route path="/profile" element={<Profile />}/>
 
             {/*Admin Routes*/}
             <Route element={<PrivateRoute allowedRoles={["admin"]}/>}>

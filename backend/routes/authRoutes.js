@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const {registerUser, verifyOtp, setPasswordUser, loginUser, getUserProfile, updateUserProfile} = require("../controllers/authControllers");
+const {registerUser, verifyOtp, setPasswordUser, loginUser, getUserProfile, updateUserProfile, changePassword, forgotPassword, resetPassword} = require("../controllers/authControllers");
 const {protect, adminOnly} = require("../middlewares/authMiddleware");
 const upload = require("../middlewares/uploadMiddleware");
 // Auth Routes
@@ -10,6 +10,9 @@ router.post("/set-password", setPasswordUser);
 router.post("/login", loginUser);
 router.get("/profile", protect, getUserProfile);
 router.put("/profile", protect, updateUserProfile);
+router.put("/change-password", protect, changePassword);
+router.post("/forgot-password", forgotPassword);
+router.post("/reset-password", resetPassword);
 
 
 router.post("/upload-image", upload.single("image"), (req, res) => {
