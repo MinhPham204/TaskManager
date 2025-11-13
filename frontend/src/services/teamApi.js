@@ -23,6 +23,14 @@ export const teamApi = createApi({
             }),
             invalidatesTags: ['Team'], // Làm mới lại danh sách team để thấy lời mời
         }),
+        acceptInvitation: builder.mutation({
+            query: (token) => ({ // { email, role }
+                url: API_PATHS.TEAM.ACCEPT_INVITATION,
+                method: 'post',
+                data: token,
+            }),
+            invalidatesTags: ['Team'], 
+        }),
         // Mutation để xóa thành viên
         removeMember: builder.mutation({
             query: (userId) => ({
@@ -37,5 +45,6 @@ export const teamApi = createApi({
 export const {
     useGetMyTeamDetailsQuery,
     useInviteMemberMutation,
+    useAcceptInvitationMutation,
     useRemoveMemberMutation,
 } = teamApi;

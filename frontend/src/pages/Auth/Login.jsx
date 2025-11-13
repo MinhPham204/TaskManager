@@ -1,6 +1,6 @@
 import React, {useState} from 'react'
 import AuthLayout from '../../components/layouts/AuthLayout'
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import Input from "../../components/Inputs/Input"
 import { validateEmail } from '../../utils/helper';
 import axios from 'axios';
@@ -16,6 +16,7 @@ const Login = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
+  const location = useLocation();
   //Handle Login Form Submit
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -31,32 +32,47 @@ const Login = () => {
     setError("");
 
     // API Call
-    try{
+    try {
       const response = await axiosInstance.post(API_PATHS.AUTH.LOGIN, {
         email,
         password,
       });
-      const {token, role} = response.data;
 
-      if(token) {
+      const { token, role } = response.data;
+      console.log("token: ", token);
+
+      if (token) {
         localStorage.setItem("token", token);
         dispatch(setUser(response.data));
 
-        if (role === "admin") {
-          navigate("/admin/dashboard");
-        }
-        else {
-          navigate("/user/dashboard");
+        // Lấy thông tin redirect từ query string 
+        const query = new URLSearchParams(location.search);
+        const from = query.get("from"); // vd: /accept-invite?token=abc123
+
+        if (from) {
+          // Giải mã URL trước khi navigate
+          const decodedPath = decodeURIComponent(from);
+          console.log("Redirecting to (invite flow):", decodedPath);
+
+          navigate(decodedPath, { replace: true });
+        } else {
+          // Logic mặc định nếu không có from
+          const defaultPath =
+            role === "admin" ? "/admin/dashboard" : "/user/dashboard";
+          console.log("Redirecting to (default):", defaultPath);
+
+          navigate(defaultPath, { replace: true });
         }
       }
     } catch (error) {
-      if(error.response && error.response.data.message) {
+      if (error.response && error.response.data.message) {
         setError(error.response.data.message);
       } else {
         setError("Something went wrong. Please try again.");
       }
     }
-  };
+  }
+
 
   return (
     <AuthLayout>

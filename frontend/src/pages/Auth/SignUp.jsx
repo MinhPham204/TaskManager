@@ -99,14 +99,7 @@ const handleFinalSignUp = async (e) => {
         password,
         profilePic,
       },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`, // gửi kèm verifiedToken
-        },
-      }
     );
-
-    console.log("Verified Token (sent):", token);
 
     const { token: accessToken, role } = response.data;
 
@@ -114,11 +107,8 @@ const handleFinalSignUp = async (e) => {
       localStorage.setItem("token", accessToken);
       dispatch(setUser(response.data));
 
-      if (role === "admin") {
-        navigate("/admin/dashboard");
-      } else {
-        navigate("/user/dashboard");
-      }
+      const defaultPatch = role === "admin" ? "admin/dashboard" : "user/dashboard";
+      navigate(defaultPatch, {replace: true});
     }
   } catch (error) {
     console.error("Signup error:", error);

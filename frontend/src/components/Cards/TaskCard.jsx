@@ -17,7 +17,7 @@ const tagStyles = {
   },
 };
 
-const TaskCard = ({ task }) => {
+const TaskCard = ({ task, role }) => { 
   const { title, description, status, priority, startDate, dueDate, assignedTo = [], todoCheckList = [] } = task;
 
   const navigate = useNavigate();
@@ -27,7 +27,12 @@ const TaskCard = ({ task }) => {
   const progress = totaltodoCheckList > 0 ? (completedtodoCheckList / totaltodoCheckList) * 100 : 0;
 
   const handleCardClick = () => {
-    navigate(`/admin/tasks/edit/${task._id}`);
+    if(role === "admin"){
+      navigate(`/admin/tasks/edit/${task._id}`);
+    }
+    else {
+      navigate(`/user/task-detail/${task._id}`);
+    }
   }
   return (
     <div 

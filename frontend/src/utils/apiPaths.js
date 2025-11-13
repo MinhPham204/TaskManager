@@ -14,6 +14,7 @@ export const API_PATHS = {
 
     USERS: {
         GET_ALL_USER: "/api/users",
+        SEARCH_USER: "api/users/search",
         GET_USER_BY_ID: (userId) => `/api/users/${userId}`,
         CREATE_USER: "/api/users",
         UPDATE_USER: (userId) => `/api/users/${userId}`,
@@ -38,6 +39,7 @@ export const API_PATHS = {
         GET_MY_TEAM_DETAILS: "/api/teams/my-team",
         UPDATE_MY_TEAM_DETAILS: "/api/teams/my-team",
         INVITE_MEMBER: "/api/teams/my-team/invitations",
+        ACCEPT_INVITATION: "/api/teams/my-team/accept-invitation",
         REMOVE_MEMBER: (userId) => `/api/teams/my-team/members/${userId}`,
     },
 

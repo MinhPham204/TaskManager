@@ -11,6 +11,10 @@ export const taskApi = createApi({
       query: () => ({ url: API_PATHS.TASKS.GET_DASHBOARD_DATA, method: 'get' }),
       providesTags: ['Dashboard'], 
     }),
+    getUserDashboardData: builder.query({
+      query: () => ({ url: API_PATHS.TASKS.GET_USER_DASHBOARD_DATA, method: 'get' }),
+      providesTags: ['UserDashboard'], 
+    }),
     getTasks: builder.query({
       query: (params) => ({ url: API_PATHS.TASKS.GET_ALL_TASKS, method: 'get', params }),
       transformResponse: (response) => response.tasks,
@@ -47,6 +51,7 @@ export const taskApi = createApi({
 
 export const {
   useGetDashboardDataQuery,
+  useGetUserDashboardDataQuery,
   useGetTasksQuery,
   useGetTaskByIdQuery,
   useCreateTaskMutation,

@@ -59,32 +59,32 @@ const getUserById = async (req, res) => {
 };
 
 // Tạo user mới bởi Admin (Đã thêm team)
-const createUserByAdmin = async (req, res) => {
-    try {
-        const { name, email, password, role } = req.body;
+// const createUserByAdmin = async (req, res) => {
+//     try {
+//         const { name, email, password, role } = req.body;
 
-        const existingUser = await User.findOne({ email });
-        if (existingUser) {
-            return res.status(400).json({ message: "Email already exists" });
-        }
+//         const existingUser = await User.findOne({ email });
+//         if (existingUser) {
+//             return res.status(400).json({ message: "Email already exists" });
+//         }
 
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
+//         const salt = await bcrypt.genSalt(10);
+//         const hashedPassword = await bcrypt.hash(password, salt);
 
-        const newUser = new User({
-            name,
-            email,
-            password: hashedPassword,
-            role: role || 'user',
-            team: req.user.team // Tự động gán user mới vào team của Admin
-        });
+//         const newUser = new User({
+//             name,
+//             email,
+//             password: hashedPassword,
+//             role: role || 'user',
+//             team: req.user.team // Tự động gán user mới vào team của Admin
+//         });
 
-        await newUser.save();
-        res.status(201).json({ message: "User created successfully" });
-    } catch (error) {
-        res.status(500).json({ message: "Server error", error: error.message });
-    }
-};
+//         await newUser.save();
+//         res.status(201).json({ message: "User created successfully" });
+//     } catch (error) {
+//         res.status(500).json({ message: "Server error", error: error.message });
+//     }
+// };
 
 // Xóa user bởi Admin (Đã bảo mật)
 const deleteUser = async (req, res) => {
@@ -114,9 +114,37 @@ const deleteUser = async (req, res) => {
     }
 };
 
+const searchUsers = async (req, res) => {
+    const keyword = req.query.q;
+
+    if (!keyword) {
+        return res.json([]);
+    }
+    try {
+        // Tìm user có name hoặc email khớp với keyword, không phân biệt hoa thường
+        const users = await User.find({
+            $and: [
+                { _id: { $ne: req.user._id } }, // Loại trừ chính user đang tìm
+                {
+                    $or: [
+                        { name: { $regex: keyword, $options: 'i' } },
+                        { email: { $regex: keyword, $options: 'i' } }
+                    ]
+                }
+            ]
+        })
+        .select('name email profileImageUrl') //trả về các trường cần thiết
+        .limit(10);
+        res.json(users);
+
+    } catch (error) {
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+};
+
 module.exports = { 
     getUser, 
     getUserById,
-    createUserByAdmin, 
-    deleteUser         
+    deleteUser,
+    searchUsers         
 };

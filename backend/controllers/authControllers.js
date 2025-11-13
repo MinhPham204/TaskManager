@@ -21,7 +21,11 @@ const registerUser = async (req, res) => {
     await redisClient.setEx(`otp:${email}`, 300, otp);
 
     // Gửi mail
-    await sendEmail(email, "Your OTP Code", `Your OTP is: ${otp}\n\nThis code is only valid for 5 minutes`);
+    await sendEmail({
+      to: email, 
+      subject: "Your OTP Code", 
+      text: `Your OTP is: ${otp}\n\nThis code is only valid for 5 minutes`,
+    });
 
     res.json({ message: "OTP sent to your email" });
   } catch (err) {
@@ -42,7 +46,7 @@ const verifyOtp = async (req, res) => {
     // Xóa OTP sau khi dùng
     await redisClient.del(`otp:${email}`);
 
-    // Tạo verifiedToken (chỉ có hiệu lực ngắn, ví dụ 10 phút)
+    // Tạo verifiedToken (chỉ có hiệu lực ngắn, 10 phút)
     const verifiedToken = jwt.sign(
       { email },
       process.env.JWT_SECRET,
@@ -220,6 +224,7 @@ const changePassword = async (req, res) => {
     }
 };
 
+
 const forgotPassword = async (req, res) => {
     try {
         const { email } = req.body;
@@ -242,6 +247,7 @@ const forgotPassword = async (req, res) => {
         res.status(500).json({ message: "Server error", error: err.message });
     }
 };
+
 
 const resetPassword = async (req, res) => {
     try {

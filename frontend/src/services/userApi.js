@@ -11,7 +11,11 @@ export const userApi = createApi({
       query: () => ({ url: API_PATHS.USERS.GET_ALL_USER, method: 'get' }), 
       providesTags: ['User'],
     }),
+    searchUsers: builder.query({
+      query: (searchTerm) => ({ url: `${API_PATHS.USERS.SEARCH_USER}?q=${searchTerm}`, 
+      method: 'get' }), 
+    }),
   }),
 });
 
-export const { useGetUsersQuery } = userApi;
+export const { useGetUsersQuery, useSearchUsersQuery } = userApi;

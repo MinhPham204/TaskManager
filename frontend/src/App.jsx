@@ -19,6 +19,7 @@ import CreateTask from "./pages/Admin/CreateTask";
 import ManageUsers from "./pages/Admin/ManageUsers";
 import UserDashboard from "./pages/User/UserDashboard";
 import MyTasks from "./pages/User/MyTasks";
+import AcceptInvitePage from "./pages/User/AcceptInvitePage";
 import ViewTaskDetails from "./pages/User/ViewTaskDetails";
 import { fetchProfile } from './store/authSlice';
 import { useEffect } from 'react';
@@ -61,6 +62,7 @@ const App = () => {
               <Route path="/user/dashboard" element={<UserDashboard />}/>
               <Route path="/user/my-task" element={<MyTasks/>}/>
               <Route path="/user/task-detail/:id" element={<ViewTaskDetails/>}/>
+              <Route path="/accept-invite" element={<AcceptInvitePage />} />
 
             </Route>  
             <Route path="/" element={<Root/>}/>

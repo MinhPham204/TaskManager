@@ -1,5 +1,3 @@
-// src/pages/Admin/ManageTasks.jsx
-
 import React from 'react';
 import { LuDownload } from 'react-icons/lu';
 import { useGetTasksQuery } from '../../services/taskApi';

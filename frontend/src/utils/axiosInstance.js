@@ -1,5 +1,9 @@
 import axios from "axios";
-import {BASE_URL} from "./apiPaths";
+import { BASE_URL, API_PATHS } from "./apiPaths"; 
+
+const LOGIN_PATH = API_PATHS.AUTH.LOGIN || "/api/auth/login";
+const SIGNUP_PATH = API_PATHS.AUTH.SIGNUP || "/api/auth/signup";
+const SET_PASSWORD_PATH = API_PATHS.AUTH.SET_PASSWORD || "/api/auth/set-password";
 
 const axiosInstance = axios.create({
     baseURL: BASE_URL,
@@ -12,17 +16,26 @@ const axiosInstance = axios.create({
 
 axiosInstance.interceptors.request.use(
     (config) => {
-        if(config.url.includes("/auth/set-password")){
+        // TH1: Route công khai (Đăng nhập)
+        if (config.url.includes(LOGIN_PATH)) {
+            // Không làm gì, để request đi "sạch sẽ"
+        } 
+        else if (
+            config.url.includes(SIGNUP_PATH) || 
+            config.url.includes(SET_PASSWORD_PATH)
+        ) {
             const verifiedToken = localStorage.getItem("verifiedToken");
-            if(verifiedToken) {
+            if (verifiedToken) {
                 config.headers.Authorization = `Bearer ${verifiedToken}`;
             }
-        } else {
+        } 
+        else {
             const accessToken = localStorage.getItem("token");
-            if(accessToken){
+            if (accessToken) {
                 config.headers.Authorization = `Bearer ${accessToken}`;
             }
         }
+
         return config;
     },
     (error) => {
@@ -32,13 +45,12 @@ axiosInstance.interceptors.request.use(
 
 axiosInstance.interceptors.response.use(
     (response) => {
-        // console.log("Axios Response:", response);
-
         return response;
     },
     (error) => {
         if(error.response) {
             if(error.response.status === 401){
+                // localStorage.removeItem("token");
                 // window.location.href = "/login";
             } else if (error.response.status === 500){
                 console.error("Server error. Please try again later.");
@@ -51,6 +63,4 @@ axiosInstance.interceptors.response.use(
     }
 );
 
-
 export default axiosInstance;
-

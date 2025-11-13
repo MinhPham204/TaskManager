@@ -1,30 +1,35 @@
 const nodemailer = require("nodemailer");
 
-const sendEmail = async (to, subject, text) => {
-  try {
-    const transporter = nodemailer.createTransport({
-      service: "gmail", // có thể dùng: "hotmail", "yahoo", hoặc SMTP server riêng
-      auth: {
-        user: process.env.EMAIL_USER, // email gửi
-        pass: process.env.EMAIL_PASS, // mật khẩu ứng dụng (app password)
-      },
-      tls: {
-        rejectUnauthorized: false, // bỏ qua lỗi self-signed
-        },
-    });
+const sendEmail = async (options) => {
+  try {
+    const transporter = nodemailer.createTransport({
+      service: "gmail", 
+      auth: {
+        user: process.env.EMAIL_USER, 
+        pass: process.env.EMAIL_PASS,
+      },
+      tls: {
+        rejectUnauthorized: false,
+        },
+    });
 
-    await transporter.sendMail({
-      from: `"Task Manager" <${process.env.EMAIL_USER}>`,
-      to,
-      subject,
-      text,
-    });
+    const mailOptions = {
+      from: `"Task Manager" <${process.env.EMAIL_USER}>`,
+      to: options.to,
+      subject: options.subject,
+      // Nếu options.text có giá trị, nó sẽ gửi text
+      text: options.text, 
+      // Nếu options.html có giá trị, nó sẽ gửi HTML
+      html: options.html, 
+    };
 
-    console.log(`Email sent to ${to}`);
-  } catch (error) {
-    console.error("Email not sent:", error);
-    throw new Error("Email not sent");
-  }
+    await transporter.sendMail(mailOptions);
+
+    console.log(`Email sent to ${options.to}`);
+  } catch (error) {
+    console.error("Email not sent:", error);
+    throw new Error("Email not sent");
+  }
 };
 
 module.exports = sendEmail;

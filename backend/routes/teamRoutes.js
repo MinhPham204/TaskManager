@@ -7,6 +7,7 @@ const {
     inviteMember,
     removeMember,
     updateTeamDetails,
+    acceptInvitation,
 } = require("../controllers/teamControllers");
 
 router.use(protect);
@@ -17,6 +18,7 @@ router.patch("/my-team", updateTeamDetails);
 
 // Các route quản lý thành viên trong team
 router.post("/my-team/invitations", inviteMember);
+router.post("/my-team/accept-invitation", acceptInvitation);
 router.delete("/my-team/members/:userId", removeMember);
 
 module.exports = router;
