@@ -1,5 +1,3 @@
-// migration.js
-
 const mongoose = require('mongoose');
 const User = require('./models/User'); // Đảm bảo đường dẫn này đúng
 const Task = require('./models/Task'); // Đảm bảo đường dẫn này đúng
