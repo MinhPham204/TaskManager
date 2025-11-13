@@ -4,7 +4,7 @@ A full-stack task management website built as a personal project. This project f
 
 **Repository:** [https://github.com/MinhPham204/TaskManager](https://github.com/MinhPham204/TaskManager)
 
-## 🚀 Key Features
+## Key Features
 
 This project provides a complete solution for managing both personal and team-based tasks:
 
@@ -17,15 +17,21 @@ This project provides a complete solution for managing both personal and team-ba
     * Set **priorities** (low, medium, high) and **due dates** for each task.
     * Automated task status updates (e.g., "pending," "in progress," "completed").
 * **Team Collaboration:**
-    * Allows users to work together in a shared workspace.
+    * Create and manage teams with role-based access control (Admins, Users).
+    * **Secure, Time-Limited Invitations:** Invite new members via email using a secure, one-time token.
+    * Invitation links are cached in **Redis** with a 24-hour expiry to ensure security.
+    * Search and add existing users in the system directly to the team.
 * **Tracking & Reporting:**
     * Intuitive user dashboard to track overall progress.
     * Report download functionality for analysis.
 * **Additional Features:**
     * File attachments for tasks.
-    * Utilizes **Redis** for caching OTPs, improving response speed and reducing load on the main database.
+    * **Redis-Powered Caching:** Utilizes Redis for caching time-sensitive data, including:
+    * **OTPs** (for registration and password resets).
+    * **Invitation Tokens** (for secure team invites).
+    * This approach significantly improves response speed and reduces load on the main MongoDB database.
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 This project is built with the modern MERN stack and other powerful technologies.
 
@@ -48,7 +54,7 @@ This project is built with the modern MERN stack and other powerful technologies
 * **JSON Web Tokens (JWT):** Generates tokens for authenticating API requests.
 * **Bcrypt.js:** Password hashing library.
 
-## 🏁 Getting Started
+## Getting Started
 
 To run this project on your local machine, follow these steps:
 
