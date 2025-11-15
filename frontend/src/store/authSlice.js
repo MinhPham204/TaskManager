@@ -12,9 +12,14 @@ export const fetchProfile = createAsyncThunk("auth/fetchProfile", async (_, { re
   }
 });
 
+const userFromStorage = localStorage.getItem("authUser")
+    ? JSON.parse(localStorage.getItem("authUser"))
+    : null;
+
+
 const initialState = {
-  user: null,
-  loading: true,
+    user: userFromStorage, 
+    loading: userFromStorage ? false : true,
 };
 
 const authSlice = createSlice({

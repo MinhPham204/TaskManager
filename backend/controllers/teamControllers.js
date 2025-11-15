@@ -1,5 +1,6 @@
 const Team = require('../models/Team');
 const User = require('../models/User');
+const Task = require('../models/Task');
 const crypto = require('crypto');
 
 const redisClient = require('../config/redisClient');
@@ -49,15 +50,48 @@ const getTeamDetails = async (req, res) => {
         }
 
         const team = await Team.findById(teamId)
-            .populate('owner', 'name email profileImageUrl')
-            .populate('admins', 'name email profileImageUrl')
-            .populate('members', 'name email profileImageUrl');
+            .populate('owner', 'name email role profileImageUrl')
+            .populate('admins', 'name email role profileImageUrl')
+            .populate('members', 'name email role profileImageUrl')
+            .lean(); // <-- 2. Dùng .lean() để có object JavaScript thuần
 
         if (!team) {
             return res.status(404).json({ message: "Team not found" });
         }
 
+        // 3. Lấy số liệu Task cho từng thành viên
+        // Chúng ta dùng Promise.all để chạy tất cả các truy vấn song song
+        const membersWithTasks = await Promise.all(
+            team.members.map(async (member) => {
+                // Đếm số task dựa trên 'assignedTo' (hoặc trường của bạn) và 'status'
+                const pendingTasks = await Task.countDocuments({
+                    assignedTo: member._id,
+                    status: 'Pending'
+                });
+                const inProgressTasks = await Task.countDocuments({
+                    assignedTo: member._id,
+                    status: 'In Progress' // Sửa lại status cho đúng
+                });
+                const completedTasks = await Task.countDocuments({
+                    assignedTo: member._id,
+                    status: 'Completed'
+                });
+
+                // Trả về object member mới với các trường task
+                return {
+                    ...member,
+                    pendingTasks,
+                    inProgressTasks,
+                    completedTasks
+                };
+            })
+        );
+
+        // 4. Gán mảng members mới vào team
+        team.members = membersWithTasks;
+
         res.json(team);
+
     } catch (error) {
         res.status(500).json({ message: "Server error", error: error.message });
     }

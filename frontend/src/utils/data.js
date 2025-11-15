@@ -53,6 +53,12 @@ export const SIDE_MENU_USER_DATA = [
         path: "/user/my-task",
     },
     {
+        id: "04",
+        label: "My Teams",
+        icon: LuUser,
+        path: "/user/my-team",
+    },
+    {
         id: "05",
         label: "Logout",
         icon: LuLogOut,

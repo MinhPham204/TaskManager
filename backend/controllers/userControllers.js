@@ -8,7 +8,7 @@ const getUser = async (req, res) => {
         const teamId = req.user.team;
 
         // Lấy tất cả user trong team
-        const users = await User.find({ team: teamId, role: 'user' }).select("-password").lean();
+        const users = await User.find({ team: teamId }).select("-password").lean();
 
         // Dùng aggregate để đếm task cho tất cả user chỉ bằng MỘT lần gọi DB
         const taskCounts = await Task.aggregate([

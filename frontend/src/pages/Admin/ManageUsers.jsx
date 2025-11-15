@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import DashboardLayout from '../../components/layouts/DashboardLayout';
-import { useGetUsersQuery } from '../../services/userApi';
 import { LuPlus } from 'react-icons/lu';
 import UserTable from '../../components/UserTable'; 
 import InviteUserModal from '../../components/InviteUserModal'; 
+import { useSelector } from 'react-redux';
+import { useGetMyTeamDetailsQuery } from '../../services/teamApi';
 
 const ManageUsers = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const { data: users, isLoading, isError } = useGetUsersQuery();
+    const { data: team, isLoading, isError } = useGetMyTeamDetailsQuery();
+    const { userInfo } = useSelector((state) => state.auth);
 
     return (
         <DashboardLayout>
@@ -24,11 +26,15 @@ const ManageUsers = () => {
                     </button>
                 </div>
 
-                {/* Body Content */}
                 <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
                     {isLoading && <p>Loading members...</p>}
                     {isError && <p className="text-red-500">Failed to load members.</p>}
-                    {users && <UserTable users={users} />}
+                    
+                    {team && <UserTable 
+                            users={team.members} 
+                            currentUserRole={userInfo?.user?.role} 
+                            currentUserId={userInfo?.user?._id}
+                    />  } 
                 </div>
             </div>
 
