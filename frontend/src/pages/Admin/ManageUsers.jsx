@@ -9,14 +9,15 @@ import { useGetMyTeamDetailsQuery } from '../../services/teamApi';
 const ManageUsers = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const { data: team, isLoading, isError } = useGetMyTeamDetailsQuery();
-    const { userInfo } = useSelector((state) => state.auth);
+
+    const { user: authData } = useSelector((state) => state.auth);
 
     return (
         <DashboardLayout>
-            <div className="p-6">
+            <div className="my-5">
                 {/* Header */}
                 <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-3xl font-bold text-gray-800">Team Members</h2>
+                    <h2 className="text-2xl font-semibold text-gray-800">Team Members</h2>
                     <button
                         onClick={() => setIsModalOpen(true)}
                         className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors"
@@ -32,8 +33,8 @@ const ManageUsers = () => {
                     
                     {team && <UserTable 
                             users={team.members} 
-                            currentUserRole={userInfo?.user?.role} 
-                            currentUserId={userInfo?.user?._id}
+                            currentUserRole={authData?.role} 
+                            currentUserId={authData?._id}
                     />  } 
                 </div>
             </div>

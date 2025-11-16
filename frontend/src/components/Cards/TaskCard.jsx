@@ -1,5 +1,3 @@
-// src/components/Cards/TaskCard.jsx
-
 import React from 'react';
 import { LuLink, LuMessageSquare } from 'react-icons/lu'; 
 import { useNavigate } from 'react-router-dom';
@@ -22,11 +20,12 @@ const TaskCard = ({ task, role }) => {
 
   const navigate = useNavigate();
   // Tính toán tiến độ
-  const completedtodoCheckList = todoCheckList.filter(st => st.isCompleted).length;
+  const completedtodoCheckList = todoCheckList.filter(st => st.completed).length;
   const totaltodoCheckList = todoCheckList.length;
   const progress = totaltodoCheckList > 0 ? (completedtodoCheckList / totaltodoCheckList) * 100 : 0;
 
   const handleCardClick = () => {
+    console.log("Role: ", role );
     if(role === "admin"){
       navigate(`/admin/tasks/edit/${task._id}`);
     }

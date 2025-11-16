@@ -34,10 +34,10 @@ const ManageTasks = () => {
 
   return (
     <DashboardLayout>
-      <div className="p-6">
+      <div className="my-5">
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-3xl font-bold text-gray-800">My Tasks</h2>
+          <h2 className="text-2xl font-semibold text-gray-800">My Tasks</h2>
           <button className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white font-semibold rounded-lg shadow-md hover:bg-green-600 transition-colors">
             <LuDownload className="w-5 h-5" />
             Download Report

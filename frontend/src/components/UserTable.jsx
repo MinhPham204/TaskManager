@@ -4,7 +4,6 @@ import React, { useMemo } from 'react';
 import { LuTrash2 } from 'react-icons/lu';
 import { useRemoveMemberMutation } from '../services/teamApi';
 
-// Component con StatItem (không đổi)
 const StatItem = ({ value, label, colorClass }) => (
     <div className="text-center px-2">
         <p className={`text-xl font-bold ${colorClass}`}>{value}</p>
@@ -12,17 +11,13 @@ const StatItem = ({ value, label, colorClass }) => (
     </div>
 );
 
-// <-- THAY ĐỔI 1: Nhận 'users' thay vì 'members'
 const UserTable = ({ users, currentUserRole, currentUserId }) => {
     const [removeMember, { isLoading }] = useRemoveMemberMutation();
 
-    // <-- THAY ĐỔI 2: Đổi tên 'sortedMembers' thành 'sortedUsers'
     const sortedUsers = useMemo(() => {
-        // <-- THAY ĐỔI 3: Dùng 'users'
         if (!users) return [];
         return [...users].sort((a, b) => a.role.localeCompare(b.role));
-    // <-- THAY ĐỔI 4: Dùng 'users'
-    }, [users]);
+        }, [users]);
 
     // Hàm handleRemove (không đổi)
     const handleRemove = async (userId) => {
@@ -38,7 +33,6 @@ const UserTable = ({ users, currentUserRole, currentUserId }) => {
 
     return (
         <table className="min-w-full divide-y divide-gray-200">
-            {/* ... (phần <thead> không đổi) ... */}
             <thead className="bg-gray-50">
                 <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
@@ -51,11 +45,8 @@ const UserTable = ({ users, currentUserRole, currentUserId }) => {
             </thead>
             
             <tbody className="bg-white divide-y divide-gray-200">
-                {/* <-- THAY ĐỔI 5: Dùng 'sortedUsers' */}
                 {sortedUsers.map((user) => (
                     <tr key={user._id}>
-                        
-                        {/* ... (các <td> Name, Role, Task Status không đổi) ... */}
                         <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center">
                                 <div className="flex-shrink-0 h-10 w-10">
@@ -82,10 +73,6 @@ const UserTable = ({ users, currentUserRole, currentUserId }) => {
 
                         
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            {/* Logic C (không đổi) */}
-                            {console.log('Current role:', currentUserRole)}
-                            {console.log('Current userId:', currentUserId)}
-                            {console.log('user:', users)}
                             {currentUserRole === 'admin' && user._id !== currentUserId && (
                                 <button onClick={() => handleRemove(user._id)} disabled={isLoading} className="text-red-600 hover:text-red-900 disabled:text-gray-400">
                                     <LuTrash2 className="w-5 h-5" />
