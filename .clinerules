@@ -1,0 +1,22 @@
+# Roo Code Project Rules
+
+## Workspace Context
+- Main Backend: `backend-nestjs/`.
+- Main Frontend: `frontend/`. Luôn `cd frontend` trước khi chạy lệnh liên quan đến FE.
+- Legacy Code: Bỏ qua thư mục `backend/`.
+
+## Frontend Development (CRITICAL)
+- **No TS Conversion**: Tuyệt đối giữ nguyên ReactJS (.jsx). KHÔNG convert sang TypeScript.
+- **State Management**: Sử dụng Redux Toolkit (thư mục `src/store/`).
+- **Data Fetching**: Sử dụng Axios Instance (`src/utils/axiosInstance.js`) có hỗ trợ Refresh Token.
+- **SaaS Context**: Luôn lưu ý `organizationId` và `role` của User từ Redux Auth state để xử lý ẩn/hiện nút bấm (RBAC).
+
+## Multi-tenancy & Workflow (Sync with Backend)
+- **Task Statuses**: Phải hỗ trợ đủ 5 trạng thái: `Pending`, `In Progress`, `Pending Approval`, `Completed`, `Rejected`.
+- **Admin Actions**: Admin/Owner mới có quyền Approve/Reject.
+- **Member Actions**: Member chỉ có quyền Submit for Approval khi task đạt 100% progress.
+
+## Coding Standards
+- Backend: NestJS, TypeScript Strict Mode.
+- Frontend: Functional Components, Hooks, Tailwind CSS (nếu có).
+- Luôn kiểm tra `MEMORIES.md` trước khi đề xuất code để đảm bảo đúng tiến độ Stages.

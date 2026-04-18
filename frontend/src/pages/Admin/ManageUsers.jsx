@@ -1,51 +1,96 @@
 import React, { useState } from 'react';
 import DashboardLayout from '../../components/layouts/DashboardLayout';
-import { LuPlus } from 'react-icons/lu';
-import UserTable from '../../components/UserTable'; 
-import InviteUserModal from '../../components/InviteUserModal'; 
+import Breadcrumb from '../../components/Breadcrumb';
+import TeamList from '../../components/TeamList';
+import TeamDetails from '../../components/TeamDetails';
 import { useSelector } from 'react-redux';
 import { useGetMyTeamDetailsQuery } from '../../services/teamApi';
 
 const ManageUsers = () => {
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const { data: team, isLoading, isError } = useGetMyTeamDetailsQuery();
+  const [selectedTeam, setSelectedTeam] = useState(null);
+  const { user: authData } = useSelector((state) => state.auth);
+  const { data: teams, isLoading, isError } = useGetMyTeamDetailsQuery();
 
-    const { user: authData } = useSelector((state) => state.auth);
+  const handleSelectTeam = (team) => {
+    setSelectedTeam(team);
+  };
 
-    return (
-        <DashboardLayout>
-            <div className="my-5">
-                {/* Header */}
-                <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-2xl font-semibold text-gray-800">Team Members</h2>
-                    <button
-                        onClick={() => setIsModalOpen(true)}
-                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors"
-                    >
-                        <LuPlus className="w-5 h-5" />
-                        Invite User
-                    </button>
-                </div>
+  const handleBackToList = () => {
+    setSelectedTeam(null);
+  };
 
-                <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
-                    {isLoading && <p>Loading members...</p>}
-                    {isError && <p className="text-red-500">Failed to load members.</p>}
-                    
-                    {team && <UserTable 
-                            users={team.members} 
-                            currentUserRole={authData?.role} 
-                            currentUserId={authData?._id}
-                    />  } 
-                </div>
-            </div>
+  // Get single team if needed (for refreshing after mutations)
+  const teamList = Array.isArray(teams) ? teams : (teams ? [teams] : []);
 
-            {/* Modal mời thành viên */}
-            <InviteUserModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-            />
-        </DashboardLayout>
-    );
+  const breadcrumbItems = selectedTeam
+    ? [
+        { label: 'Admin', href: '/admin/dashboard' },
+        { label: 'Team Members', href: '/admin/users' },
+        { label: selectedTeam.name },
+      ]
+    : [
+        { label: 'Admin', href: '/admin/dashboard' },
+        { label: 'Team Members' },
+      ];
+
+  return (
+    <DashboardLayout activeMenu="Users">
+      <div className="my-5">
+        {/* Breadcrumb */}
+        <Breadcrumb items={breadcrumbItems} />
+
+        {/* Header */}
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-gray-800">
+            {selectedTeam ? selectedTeam.name : 'Team Management'}
+          </h1>
+          <p className="text-gray-600 mt-2">
+            {selectedTeam
+              ? 'Manage team members and their roles'
+              : 'Select a team to manage members'}
+          </p>
+        </div>
+
+        {/* Loading / Error states */}
+        {isLoading && (
+          <div className="bg-white p-8 rounded-lg text-center">
+            <p className="text-gray-500">Loading teams...</p>
+          </div>
+        )}
+        {isError && (
+          <div className="bg-red-50 border border-red-200 p-4 rounded-lg">
+            <p className="text-red-600">Failed to load teams.</p>
+          </div>
+        )}
+
+        {/* Main content */}
+        {!isLoading && !isError && (
+          <>
+            {selectedTeam ? (
+              // Team Details View
+              <TeamDetails
+                team={selectedTeam}
+                onBack={handleBackToList}
+                authData={authData}
+              />
+            ) : (
+              // Team List View
+              <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
+                <h2 className="text-xl font-semibold text-gray-800 mb-4">
+                  Your Teams
+                </h2>
+                <TeamList
+                  teams={teamList}
+                  onSelectTeam={handleSelectTeam}
+                  isLoading={isLoading}
+                />
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </DashboardLayout>
+  );
 };
 
 export default ManageUsers;

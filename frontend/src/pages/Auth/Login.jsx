@@ -7,7 +7,7 @@ import axios from 'axios';
 import axiosInstance from '../../utils/axiosInstance';
 import { API_PATHS } from '../../utils/apiPaths';
 import { useDispatch } from 'react-redux';
-import { setUser } from '../../store/authSlice';
+import { setCredentials } from '../../store/authSlice';
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -38,29 +38,25 @@ const Login = () => {
         password,
       });
 
-      const { token, role } = response.data;
-      console.log("token: ", token);
+      // NestJS trả về: { accessToken, refreshToken, user: { _id, name, email, role, organization } }
+      const { accessToken, user } = response.data;
 
-      if (token) {
-        localStorage.setItem("token", token);
-        dispatch(setUser(response.data));
+      if (accessToken && user) {
+        // setCredentials tự động lưu tokens vào localStorage và cập nhật Redux state
+        dispatch(setCredentials(response.data));
 
-        // Lấy thông tin redirect từ query string 
+        // Lấy thông tin redirect từ query string
         const query = new URLSearchParams(location.search);
         const from = query.get("from"); // vd: /accept-invite?token=abc123
 
         if (from) {
-          // Giải mã URL trước khi navigate
-          const decodedPath = decodeURIComponent(from);
-          console.log("Redirecting to (invite flow):", decodedPath);
-
-          navigate(decodedPath, { replace: true });
+          navigate(decodeURIComponent(from), { replace: true });
         } else {
-          // Logic mặc định nếu không có from
+          // owner/admin → dashboard quản trị, member → dashboard cá nhân
           const defaultPath =
-            role === "admin" ? "/admin/dashboard" : "/user/dashboard";
-          console.log("Redirecting to (default):", defaultPath);
-
+            user.role === "owner" || user.role === "admin"
+              ? "/admin/dashboard"
+              : "/user/dashboard";
           navigate(defaultPath, { replace: true });
         }
       }

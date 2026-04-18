@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import moment from "moment";
 import { Box, CircularProgress, Typography } from '@mui/material'; 
-import { useGetUserDashboardDataQuery } from '../../services/taskApi';
+import { useGetWorkloadReportQuery, useGetUserDashboardDataQuery } from '../../services/taskApi';
 import DashboardLayout from '../../components/layouts/DashboardLayout';
 import { addThousandsSeparator } from '../../utils/helper';
 import InfoCard from '../../components/Cards/InfoCard';
@@ -17,31 +17,37 @@ const COLORS = ["#8D51FF", "#00B8D8", "#7BCE00"];
 const Dashboard = () => {
   const { user } = useSelector((state) => state.auth);
   const navigate = useNavigate();
-  const { data: dashboardData, isLoading, isError } = useGetUserDashboardDataQuery();
+  const { data: workloadReport, isLoading: isLoadingReport, isError: isErrorReport } = useGetWorkloadReportQuery();
+  const { data: dashboardData, isLoading: isLoadingDashboard } = useGetUserDashboardDataQuery(); // For recentTasks
 
-  // TÍNH TOÁN DỮ LIỆU CHART BẰNG useMemo 
+  // TÍNH TOÁN DỮ LIỆU CHART TỪ WORKLOAD REPORT
   const pieChartData = useMemo(() => {
-    const taskDistribution = dashboardData?.charts?.taskDistribution || {};
-    return [
-      { status: "Pending", count: taskDistribution.Pending || 0 },
-      { status: "In Progress", count: taskDistribution.InProgress || 0 },
-      { status: "Completed", count: taskDistribution.Completed || 0 },
-    ];
-  }, [dashboardData]);
+    if (!workloadReport?.byStatus) return [];
+    return workloadReport.byStatus.map(item => ({
+      status: item.status,
+      count: item.count
+    }));
+  }, [workloadReport]);
 
   const barChartData = useMemo(() => {
-    const taskPriorityLevels = dashboardData?.charts?.taskPriorityLevels || {};
-    return [
-      { priority: "Low", count: taskPriorityLevels.Low || 0 },
-      { priority: "Medium", count: taskPriorityLevels.Medium || 0 },
-      { priority: "High", count: taskPriorityLevels.High || 0 },
-    ];
-  }, [dashboardData]);
+    if (!workloadReport?.byPriority) return [];
+    return workloadReport.byPriority.map(item => ({
+      priority: item.priority,
+      count: item.count
+    }));
+  }, [workloadReport]);
 
+  const totalTasks = useMemo(() => {
+    if (!workloadReport?.byStatus) return 0;
+    return workloadReport.byStatus.reduce((sum, item) => sum + item.count, 0);
+  }, [workloadReport]);
 
   const onSeeMore = () => {
-    navigate('/admin/tasks');
+    navigate('/user/tasks');
   }
+
+  const isLoading = isLoadingReport || isLoadingDashboard;
+  const isError = isErrorReport;
 
   if (isLoading) {
     return (
@@ -76,29 +82,27 @@ const Dashboard = () => {
         <div className="grid gir-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mt-5">
           <InfoCard
             label=" Total Tasks"
-            value={addThousandsSeparator(
-              dashboardData?.statistics?.totalTasks || 0
-            )}
+            value={addThousandsSeparator(totalTasks)}
             color="bg-primary"
           />
           <InfoCard
             label=" Pending Tasks "
             value={addThousandsSeparator(
-              dashboardData?.statistics?.pendingTasks || 0
+              workloadReport?.byStatus?.find(s => s.status === 'Pending')?.count || 0
             )}
             color="bg-yellow-500"
           />
           <InfoCard
             label=" In Progress Tasks "
             value={addThousandsSeparator(
-              dashboardData?.charts?.taskDistribution?.InProgress || 0
+              workloadReport?.byStatus?.find(s => s.status === 'In Progress')?.count || 0
             )}
             color="bg-cyan-500"
           />
           <InfoCard
             label=" Completed Tasks"
             value={addThousandsSeparator(
-              dashboardData?.statistics?.completedTasks || 0
+              workloadReport?.byStatus?.find(s => s.status === 'Completed')?.count || 0
             )}
             color="bg-lime-500"
           />

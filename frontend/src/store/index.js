@@ -4,6 +4,7 @@ import taskReducer from "./taskSlice";
 import { taskApi } from "../services/taskApi";
 import { userApi } from "../services/userApi";
 import { teamApi } from "../services/teamApi";
+import { organizationApi } from "../services/organizationApi";
 import { authApi } from "../services/authApi";
 
 export const store = configureStore({
@@ -14,7 +15,8 @@ export const store = configureStore({
     [taskApi.reducerPath]: taskApi.reducer,
     [userApi.reducerPath]: userApi.reducer, 
     [teamApi.reducerPath]: teamApi.reducer,
+    [organizationApi.reducerPath]: organizationApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(authApi.middleware, taskApi.middleware, userApi.middleware, teamApi.middleware),
+    getDefaultMiddleware().concat(authApi.middleware, taskApi.middleware, userApi.middleware, teamApi.middleware, organizationApi.middleware),
 });

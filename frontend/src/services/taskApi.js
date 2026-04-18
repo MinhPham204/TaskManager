@@ -17,7 +17,9 @@ export const taskApi = createApi({
     }),
     getTasks: builder.query({
       query: (params) => ({ url: API_PATHS.TASKS.GET_ALL_TASKS, method: 'get', params }),
-      transformResponse: (response) => response.tasks,
+      transformResponse: (response) => {
+        return Array.isArray(response) ? response : (response?.tasks || []); 
+      },
       providesTags: (result) =>
         result
           ? [...result.map(({ _id }) => ({ type: 'Task', id: _id })), { type: 'Task', id: 'LIST' }]
@@ -46,6 +48,33 @@ export const taskApi = createApi({
       }),
       invalidatesTags: (result, error, _id) => [{ type: 'Task', id: _id }],
     }),
+    submitForApproval: builder.mutation({
+      query: (taskId) => ({
+        url: API_PATHS.TASKS.SUBMIT_FOR_APPROVAL(taskId),
+        method: 'patch',
+      }),
+      invalidatesTags: (result, error, taskId) => [{ type: 'Task', id: taskId }, { type: 'Task', id: 'LIST' }],
+    }),
+    approveTask: builder.mutation({
+      query: ({ taskId, ...data }) => ({
+        url: API_PATHS.TASKS.APPROVE_TASK(taskId),
+        method: 'patch',
+        data,
+      }),
+      invalidatesTags: (result, error, { taskId }) => [{ type: 'Task', id: taskId }, { type: 'Task', id: 'LIST' }],
+    }),
+    rejectTask: builder.mutation({
+      query: ({ taskId, rejectionReason }) => ({
+        url: API_PATHS.TASKS.REJECT_TASK(taskId),
+        method: 'patch',
+        data: { rejectionReason },
+      }),
+      invalidatesTags: (result, error, { taskId }) => [{ type: 'Task', id: taskId }, { type: 'Task', id: 'LIST' }],
+    }),
+    getWorkloadReport: builder.query({
+      query: (params) => ({ url: API_PATHS.TASKS.GET_WORKLOAD_REPORT, method: 'get', params }),
+      providesTags: ['WorkloadReport'],
+    }),
   }),
 });
 
@@ -57,4 +86,8 @@ export const {
   useCreateTaskMutation,
   useUpdateTaskMutation,
   useDeleteTaskMutation,
+  useSubmitForApprovalMutation,
+  useApproveTaskMutation,
+  useRejectTaskMutation,
+  useGetWorkloadReportQuery,
 } = taskApi;

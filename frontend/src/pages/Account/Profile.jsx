@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../../components/layouts/DashboardLayout';
+import PendingInvitations from '../../components/PendingInvitations';
 import { useGetProfileQuery, useUpdateProfileMutation, useChangePasswordMutation } from '../../services/authApi';
 import { LuUser, LuMail, LuKey, LuSettings2, LuSave, LuX } from 'react-icons/lu';
 import { toast } from 'react-hot-toast'; //demo
@@ -132,6 +133,11 @@ const Profile = () => {
                              </form>
                         </div>
                     </div>
+                </div>
+
+                {/* Pending Invitations Section */}
+                <div className="mt-10">
+                    <PendingInvitations />
                 </div>
             </div>
         </DashboardLayout>

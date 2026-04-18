@@ -1,5 +1,3 @@
-// src/components/UserTable.jsx
-
 import React, { useMemo } from 'react'; 
 import { LuTrash2 } from 'react-icons/lu';
 import { useRemoveMemberMutation } from '../services/teamApi';
@@ -11,15 +9,43 @@ const StatItem = ({ value, label, colorClass }) => (
     </div>
 );
 
+/**
+ * Kiểm tra quyền xóa thành viên dựa trên RBAC rules từ backend:
+ * - Owner: xóa được Admin/Member (không xóa Owner khác)
+ * - Admin: xóa được Member (không xóa Admin/Owner)
+ * - Member: không xóa ai
+ * - Không tự xóa bản thân
+ */
+const canRemoveMember = (currentUserRole, targetRole, isSelf) => {
+    if (isSelf) return false; // Không tự xóa bản thân
+    if (targetRole === 'owner') return false; // Không ai xóa được Owner
+    if (currentUserRole === 'owner') return ['admin', 'member'].includes(targetRole); // Owner xóa Admin/Member
+    if (currentUserRole === 'admin') return targetRole === 'member'; // Admin xóa Member
+    return false; // Member không xóa ai
+};
+
 const UserTable = ({ users, currentUserRole, currentUserId }) => {
     const [removeMember, { isLoading }] = useRemoveMemberMutation();
 
     const sortedUsers = useMemo(() => {
         if (!users) return [];
-        return [...users].sort((a, b) => a.role.localeCompare(b.role));
+        // users có thể là array của users trực tiếp hoặc array của { user, role } objects
+        // Normalize thành format: [{ _id, name, email, role, profileImageUrl, ... }]
+        return [...users]
+            .map((item) => {
+                // Nếu item có property 'user', nó là format { user, role }
+                if (item.user && item.role) {
+                    return { ...item.user, role: item.role };
+                }
+                // Ngược lại, item là user object trực tiếp
+                return item;
+            })
+            .sort((a, b) => {
+                const roleOrder = { owner: 0, admin: 1, member: 2 };
+                return (roleOrder[a.role] ?? 3) - (roleOrder[b.role] ?? 3);
+            });
         }, [users]);
 
-    // Hàm handleRemove (không đổi)
     const handleRemove = async (userId) => {
         if (window.confirm('Are you sure you want to remove this member?')) {
             try {
@@ -45,42 +71,61 @@ const UserTable = ({ users, currentUserRole, currentUserId }) => {
             </thead>
             
             <tbody className="bg-white divide-y divide-gray-200">
-                {sortedUsers.map((user) => (
-                    <tr key={user._id}>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center">
-                                <div className="flex-shrink-0 h-10 w-10">
-                                    <img className="h-10 w-10 rounded-full object-cover" src={user.profileImageUrl || `https://ui-avatars.com/api/?name=${user.name}`} alt={user.name} />
+                {sortedUsers.map((user) => {
+                    const isSelf = user._id === currentUserId;
+                    const canDelete = canRemoveMember(currentUserRole, user.role, isSelf);
+                    
+                    return (
+                        <tr key={user._id}>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="flex items-center">
+                                    <div className="flex-shrink-0 h-10 w-10">
+                                        <img className="h-10 w-10 rounded-full object-cover" src={user.profileImageUrl || `https://ui-avatars.com/api/?name=${user.name}`} alt={user.name} />
+                                    </div>
+                                    <div className="ml-4">
+                                        <div className="text-sm font-medium text-gray-900">{user.name}</div>
+                                        <div className="text-sm text-gray-500">{user.email}</div>
+                                    </div>
                                 </div>
-                                <div className="ml-4">
-                                    <div className="text-sm font-medium text-gray-900">{user.name}</div>
-                                    <div className="text-sm text-gray-500">{user.email}</div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                    user.role === 'owner' 
+                                        ? 'bg-purple-100 text-purple-800' 
+                                        : user.role === 'admin' 
+                                        ? 'bg-indigo-100 text-indigo-800' 
+                                        : 'bg-green-100 text-green-800'
+                                }`}>
+                                    {user.role}
+                                </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="flex justify-start -ml-2">
+                                    <StatItem value={user.pendingTasks || 0} label="Pending" colorClass="text-yellow-500" />
+                                    <StatItem value={user.inProgressTasks || 0} label="In Progress" colorClass="text-blue-500" />
+                                    <StatItem value={user.completedTasks || 0} label="Completed" colorClass="text-green-500" />
                                 </div>
-                            </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${user.role === 'admin' ? 'bg-indigo-100 text-indigo-800' : 'bg-green-100 text-green-800'}`}>
-                                {user.role}
-                            </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex justify-start -ml-2">
-                                <StatItem value={user.pendingTasks || 0} label="Pending" colorClass="text-yellow-500" />
-                                <StatItem value={user.inProgressTasks || 0} label="In Progress" colorClass="text-blue-500" />
-                                <StatItem value={user.completedTasks || 0} label="Completed" colorClass="text-green-500" />
-                            </div>
-                        </td>
+                            </td>
 
-                        
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            {currentUserRole === 'admin' && user._id !== currentUserId && (
-                                <button onClick={() => handleRemove(user._id)} disabled={isLoading} className="text-red-600 hover:text-red-900 disabled:text-gray-400">
-                                    <LuTrash2 className="w-5 h-5" />
-                                </button>
-                            )}
-                        </td>
-                    </tr>
-                ))}
+                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                {canDelete ? (
+                                    <button 
+                                        onClick={() => handleRemove(user._id)} 
+                                        disabled={isLoading} 
+                                        className="text-red-600 hover:text-red-900 disabled:text-gray-400 cursor-pointer"
+                                        title={`Remove ${user.name}`}
+                                    >
+                                        <LuTrash2 className="w-5 h-5" />
+                                    </button>
+                                ) : (
+                                    <span className="text-gray-300 cursor-not-allowed" title="You don't have permission to remove this member">
+                                        <LuTrash2 className="w-5 h-5" />
+                                    </span>
+                                )}
+                            </td>
+                        </tr>
+                    );
+                })}
             </tbody>
         </table>
     );
