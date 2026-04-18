@@ -42,6 +42,8 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('api/docs', app, document);
 
+  console.log('🔗 ĐANG KẾT NỐI TỚI:', process.env.MONGO_URI);
+
   await app.listen(port);
   console.log(`🚀 Server:  http://localhost:${port}/api`);
   console.log(`📚 Swagger: http://localhost:${port}/api/docs`);

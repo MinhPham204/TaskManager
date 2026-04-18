@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: task_manager_api
+    ports:
+      - '8001:8001'
+    volumes:
+      # Ánh xạ code từ máy local vào container để code tự động reload khi bạn bấm Save
+      - .:/usr/src/app
+      # Giữ lại node_modules bên trong container, không bị ghi đè bởi máy local
+      - /usr/src/app/node_modules
+    env_file:
+      - .env
+    depends_on:
+      - mongo
+      - redis
+    networks:
+      - task_network
+
+  mongo:
+    image: mongo:latest
+    container_name: task_manager_db
+    ports:
+      - '27018:27017' # Ánh xạ cổng 27017 của container ra cổng 27018 của máy host để tránh xung đột với MongoDB nếu bạn đã cài trên máy
+    command: ["--replSet", "rs0", "--bind_ip_all", "--port", "27017"] # Cấu hình MongoDB để chạy replica set nhằm hỗ trợ transactions
+    volumes:
+      # Lưu trữ dữ liệu DB ra một ổ đĩa ảo để không bị mất data khi tắt Docker
+      - mongo_data:/data/db
+    networks:
+      - task_network
+
+  redis:
+    image: redis:alpine
+    container_name: task_manager_redis
+    ports:
+      - '6379:6379'
+    networks:
+      - task_network
+
+volumes:
+  mongo_data:
+
+networks:
+  task_network:
+    driver: bridge

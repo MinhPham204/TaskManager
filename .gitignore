@@ -32,6 +32,9 @@ frontend/.env
 # Custom ignored files
 # ===============================
 backend/seed-data.js
+MEMORIES.md
+TASK_DISPLAY_ANALYSIS.md
+.clinerules
 
 # ===============================
 # Editor & OS files
