@@ -24,7 +24,6 @@ async function bootstrap() {
   app.enableCors({ origin: clientUrl, credentials: true });
   app.setGlobalPrefix('api');
 
-  // ─── Swagger UI ───────────────────────────────────────────────────────────────
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Task Manager API')
     .setDescription('SaaS Multi-tenant Task Manager — NestJS REST API')
@@ -42,7 +41,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('api/docs', app, document);
 
-  console.log('🔗 ĐANG KẾT NỐI TỚI:', process.env.MONGO_URI);
+  console.log('Connecting to MongoDB:', process.env.MONGO_URI);
 
   await app.listen(port);
   console.log(`Server:  http://localhost:${port}/api`);
