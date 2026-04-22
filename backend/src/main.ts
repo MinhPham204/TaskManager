@@ -45,7 +45,7 @@ async function bootstrap() {
   console.log('🔗 ĐANG KẾT NỐI TỚI:', process.env.MONGO_URI);
 
   await app.listen(port);
-  console.log(`🚀 Server:  http://localhost:${port}/api`);
-  console.log(`📚 Swagger: http://localhost:${port}/api/docs`);
+  console.log(`Server:  http://localhost:${port}/api`);
+  console.log(`Swagger: http://localhost:${port}/api/docs`);
 }
 bootstrap();

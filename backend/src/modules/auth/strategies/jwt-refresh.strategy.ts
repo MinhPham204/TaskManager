@@ -10,7 +10,6 @@ import { JwtPayload } from './jwt.strategy';
 
 /**
  * JWT Refresh Token Strategy.
- * passReqToCallback=true để lấy raw token từ Authorization header.
  */
 @Injectable()
 export class JwtRefreshStrategy extends PassportStrategy(
@@ -26,8 +25,8 @@ export class JwtRefreshStrategy extends PassportStrategy(
     const opts: StrategyOptionsWithRequest = {
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: refreshSecret || 'temporary_secret_for_debug', // Dùng tạm chuỗi này nếu bị undefined để server không sập
-      passReqToCallback: true,
+      secretOrKey: refreshSecret || 'temporary_secret_for_debug', // Chuỗi tạm tránh trường hợp undefined 
+      passReqToCallback: true, // lấy raw token từ Authorization header trong validate()
     };
     super(opts);
   }

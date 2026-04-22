@@ -56,8 +56,7 @@ export class AuthService {
     @InjectConnection() private readonly connection: Connection,
   ) { }
 
-  // Register flow 3 bước: register → verify OTP → set password
-
+  // REGISTER FLOW (3 bước)
   /**
    * Bước 1: Gửi OTP đến email.
    * Không tạo user cho đến khi set password thành công.
@@ -78,7 +77,7 @@ export class AuthService {
   }
 
   /**
-   * Bước 2: Xác minh OTP -> trả về verifiedToken
+   * Bước 2: Xác minh OTP → trả về verifiedToken (JWT ngắn hạn 10 phút).
    */
   async verifyOtp(dto: VerifyOtpDto): Promise<{ verifiedToken: string }> {
     const storedOtp = await this.redisService.getOtp(dto.email);
@@ -105,13 +104,13 @@ export class AuthService {
   }
 
   /**
-   * Bước 3: Nhập mật khẩu + họ tên + org name → tạo tài khoản + issue tokens.
+   * Bước 3: Nhập mật khẩu + họ tên → tạo tài khoản + issue tokens.
    * verifiedToken được gửi qua Authorization header.
    *
    * Flow:
    *  1. Verify verifiedToken
    *  2. Kiểm tra email chưa đăng ký
-   *  3. Pre-generate userId (giải quyết org cần owner, user cần org)
+   *  3. Pre-generate userId (giải quyết chicken-and-egg: org cần owner, user cần org)
    *  4. Tạo Organization với owner = userId (pre-gen)
    *  5. Tạo User với organization = org._id, _id = userId (pre-gen)
    *  6. Issue & return tokens
@@ -132,16 +131,16 @@ export class AuthService {
 
     const { email } = payload;
 
-    // 2. Double-check email chưa đăng ký (2 tab cùng submit)
+    // 2. Double-check email chưa đăng ký (edge case: 2 tab cùng submit)
     const existing = await this.userModel.findOne({ email });
     if (existing) {
       throw new ConflictException('Email is already registered');
     }
 
-    // 3. Pre-generate userId -> phá vòng lặp phụ thuộc:
+    // 3. Pre-generate userId → phá vòng lặp phụ thuộc:
     //    - Organization.owner cần userId
     //    - User.organization cần orgId
-    //    => tạo ObjectId trước, dùng cho cả hai
+    //    Giải pháp: tạo ObjectId trước, dùng cho cả hai
     const userId = new Types.ObjectId();
 
     // 4. Hash password
@@ -156,11 +155,11 @@ export class AuthService {
 
     try {
       // 5. Tạo Organization (Truyền session vào)
-      // * Mongoose create với session thường trả về mảng, nên lấy phần tử [0]
+      // Lưu ý: Mongoose create với session thường trả về mảng, nên lấy phần tử [0]
       const createdOrgs = await this.organizationModel.create(
         [
           {
-            name: dto.organizationName,
+            name: dto.organizationName, 
             owner: userId,
             members: [userId],
           },
@@ -190,8 +189,9 @@ export class AuthService {
     } catch (error) {
       // Nếu có bất kỳ lỗi gì xảy ra -> Rollback (Hủy bỏ) cả Org lẫn User
       await session.abortTransaction();
-      throw error; 
+      throw error; // Ném lỗi ra ngoài để kẹp vào Global Filter
     } finally {
+      // Đóng phiên giao dịch
       session.endSession();
     }
 
@@ -208,7 +208,10 @@ export class AuthService {
     };
   }
 
-  // Login & Logout & Refresh Token
+
+  // ═══════════════════════════════════════════════════════════════════
+  // LOGIN / LOGOUT / REFRESH
+  // ═══════════════════════════════════════════════════════════════════
 
   async login(dto: LoginDto): Promise<TokenPair & { user: UserResponse }> {
     const user = await this.userService.findByEmailWithPassword(dto.email);
@@ -239,8 +242,8 @@ export class AuthService {
   }
 
   /**
-   * Refresh tokens: nhận user từ JwtRefreshStrategy (có raw refreshToken)
-   * Verify hash từ DB -> issue cặp tokens mới.
+   * Refresh tokens: nhận user từ JwtRefreshStrategy (có raw refreshToken).
+   * Verify hash từ DB → issue cặp tokens mới.
    */
   async refreshTokens(
     userId: string,
@@ -271,7 +274,9 @@ export class AuthService {
     return tokens;
   }
 
-  // Profile & Change Password
+  // ═══════════════════════════════════════════════════════════════════
+  // PROFILE
+  // ═══════════════════════════════════════════════════════════════════
 
   async getProfile(userId: string): Promise<UserDocument> {
     return this.userService.findById(userId);
@@ -300,7 +305,9 @@ export class AuthService {
     return { message: 'Password changed successfully' };
   }
 
-  // Forgot & Reset Password
+  // ═══════════════════════════════════════════════════════════════════
+  // FORGOT / RESET PASSWORD
+  // ═══════════════════════════════════════════════════════════════════
 
   async forgotPassword(email: string): Promise<{ message: string }> {
     const GENERIC_MSG =
@@ -335,7 +342,9 @@ export class AuthService {
     return { message: 'Password has been reset. You can now log in.' };
   }
 
+  // ═══════════════════════════════════════════════════════════════════
   // PRIVATE HELPERS
+  // ═══════════════════════════════════════════════════════════════════
 
   private async issueTokens(user: UserDocument): Promise<TokenPair> {
     const payload: JwtPayload = {

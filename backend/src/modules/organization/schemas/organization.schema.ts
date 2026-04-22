@@ -11,7 +11,6 @@ export enum OrgPlan {
   ENTERPRISE = 'enterprise',
 }
 
-// ─── Sub-document: PendingInvitation ─────────────────────────────────────────
 @Schema({ _id: false })
 export class OrgPendingInvitation {
   @ApiProperty({ example: 'user@example.com' })
@@ -91,3 +90,7 @@ OrganizationSchema.pre('save', async function () {
     this.slug = baseSlug ? `${baseSlug}-${randomSuffix}` : `org-${randomSuffix}`;
   }
 });
+
+OrganizationSchema.index({ isActive: 1, owner: 1 });
+OrganizationSchema.index({ isActive: 1, members: 1 });
+OrganizationSchema.index({ "pendingInvitations.email": 1 });

@@ -4,14 +4,10 @@ import { UserRole } from '../../modules/user/schemas/user.schema';
 import { ROLES_KEY } from '../decorators/roles.decorator';
 
 /**
- * RolesGuard — kiểm tra role của user hiện tại (từ req.user.role)
+ * RolesGuard — check role của user hiện tại (từ req.user.role)
  * so với danh sách role được phép (từ metadata @Roles(...)).
  *
- * Phải dùng SAU JwtAuthGuard (vì cần req.user đã được populate).
- *
- * Nếu endpoint không có @Roles() → guard cho phép tất cả (pass-through).
- *
- * Ví dụ sử dụng:
+ * Flow sử dụng:
  *   @Roles(UserRole.ADMIN, UserRole.OWNER)
  *   @UseGuards(JwtAuthGuard, RolesGuard)
  *   @Patch(':id/approve')
@@ -27,7 +23,7 @@ export class RolesGuard implements CanActivate {
       [context.getHandler(), context.getClass()],
     );
 
-    // Không có @Roles() → không hạn chế → cho phép tất cả
+    // Không có @Roles() -> Accept all
     if (!requiredRoles || requiredRoles.length === 0) return true;
 
     const request = context

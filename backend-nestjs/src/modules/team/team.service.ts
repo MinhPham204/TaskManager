@@ -47,6 +47,7 @@ export class TeamService {
   }
 
   /**
+   * Lớp phòng thủ 2 cho nhóm quản trị Team.
    * Cho phép ORG_OWNER/ORG_ADMIN hoặc TEAM_LEAD của chính team đó.
    */
   private async ensureTeamAdminAccess(
@@ -79,9 +80,9 @@ export class TeamService {
     throw new ForbiddenException('Bạn không có quyền quản trị Team này');
   }
 
-  // Create team
+  // ─── CREATE ──────────────────────────────────────────────────────────────────
   async create(dto: CreateTeamDto, currentUser: TeamActor): Promise<TeamDocument> {
-    // Đảm bảo user thuộc org trước khi tạo 
+    // Đảm bảo user thuộc org trước khi tạo → lỗi rõ ràng thay vì Mongoose ValidationError
     const orgId = this.tenantStorage.requireOrganizationId();
 
     if (
@@ -94,6 +95,7 @@ export class TeamService {
     const leadUserId = dto.leadUserId ?? currentUser.userId;
     const leadObjectId = new Types.ObjectId(leadUserId);
 
+    // Nếu chỉ định lead khác người tạo, phải chắc chắn user đó thuộc cùng organization.
     if (dto.leadUserId) {
       const leadUser = await this.userModel
         .findOne({
@@ -120,6 +122,7 @@ export class TeamService {
           role: TeamMemberRole.LEAD,
         },
       ],
+      // organization: KHÔNG set — plugin tự inject qua pre('validate')
     });
 
     try {
@@ -134,7 +137,7 @@ export class TeamService {
     }
   }
 
-  // Read teams
+  // ─── READ ─────────────────────────────────────────────────────────────────────
   async findAll(
     pagination?: PaginationDto,
   ): Promise<PaginatedResult<TeamDocument>> {
@@ -204,7 +207,7 @@ export class TeamService {
     return { data, total, page, limit };
   }
 
-  // Update team
+  // ─── UPDATE ───────────────────────────────────────────────────────────────────
   async update(
     id: string,
     dto: UpdateTeamDto,
@@ -221,7 +224,7 @@ export class TeamService {
     return team;
   }
 
-  // Quản lý thành viên trong team
+  // ─── MEMBER MANAGEMENT ────────────────────────────────────────────────────────
   /**
    * Thêm thành viên vào team.
    * Đảm bảo SaaS Multi-tenancy: chỉ cho phép thêm nếu user thuộc cùng Organization.
@@ -240,7 +243,7 @@ export class TeamService {
     const currentOrgId = this.tenantStorage.getOrganizationId();
 
     if (!currentOrgId) {
-    throw new UnauthorizedException('Cannot find your organization context. Please re-login or contact support if the issue persists.');
+    throw new UnauthorizedException('Cannot Find Organization Context. Please login again.');
   }
 
     const user = await this.userModel.findOne({
@@ -389,7 +392,7 @@ export class TeamService {
     return this.findById(teamId, currentUser);
   }
 
-  // Mời thành viên qua email
+  // ─── INVITATION ────────────────────────────────────────────────────────────────
   async inviteMember(
     teamId: string,
     dto: InviteMemberDto,
@@ -417,7 +420,7 @@ export class TeamService {
     const token = randomBytes(32).toString('hex');
     const expiresAt = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
 
-    // Tìm và xóa lời mời của email này nếu nó đã quá hạn (expiresAt < now)
+    // Tìm và xóa lời mời của email này NẾU nó đã quá hạn (expiresAt < now)
     await this.teamModel.updateOne(
       { _id: new Types.ObjectId(teamId) },
       { 
@@ -470,7 +473,7 @@ export class TeamService {
     const normalizedEmail = email.trim().toLowerCase();
 
     // Dùng $pull để xóa toàn bộ dữ liệu xác thực lời mời (email, token, expiresAt),
-    // giúp link mời đã gửi trước đó bị vô hiệu hóa ngay
+    // giúp link mời đã gửi trước đó bị vô hiệu hóa ngay lập tức.
     const team = await this.teamModel.findOneAndUpdate(
       { _id: new Types.ObjectId(teamId) },
       { $pull: { pendingInvitations: { email: normalizedEmail } } },
@@ -480,7 +483,7 @@ export class TeamService {
     return team;
   }
 
-  // Delete team
+  // ─── DELETE ───────────────────────────────────────────────────────────────────
   async delete(id: string, currentUser: TeamActor): Promise<{ message: string }> {
     await this.ensureTeamAdminAccess(id, currentUser);
 

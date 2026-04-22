@@ -1,98 +1,114 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Task Manager Backend (NestJS)
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Backend API for a multi-tenant Task Manager SaaS application.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Overview
 
-## Description
+This service provides:
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- JWT authentication with access/refresh token flow
+- 3-step onboarding flow: register -> verify OTP -> set password
+- Organization, team, and task management with role-based access
+- Multi-tenant data isolation using ALS + Mongoose plugin
+- Task workflow features (submit, approve, reject, todo checklist)
+- BullMQ workers and scheduled reminder jobs
+- Swagger API documentation
 
-## Project setup
+## Main Modules
 
-```bash
-$ npm install
-```
+Registered modules in the app:
 
-## Compile and run the project
+- Auth
+- Organization
+- User
+- Task
+- Team
+- Automation
+- Shared
 
-```bash
-# development
-$ npm run start
+## Multi-Tenant Design
 
-# watch mode
-$ npm run start:dev
+Tenant isolation is implemented with two layers:
 
-# production mode
-$ npm run start:prod
-```
+- Tenant interceptor:
+  - extracts organization id from authenticated user
+  - stores tenant context using AsyncLocalStorage
+- Mongoose tenant plugin:
+  - injects organization filter into most queries automatically
+  - auto-populates organization for newly created tenant-bound documents
 
-## Run tests
+## Prerequisites
 
-```bash
-# unit tests
-$ npm run test
+- Node.js 20+
+- npm
+- MongoDB
+- Redis
 
-# e2e tests
-$ npm run test:e2e
+Or run MongoDB and Redis through Docker Compose.
 
-# test coverage
-$ npm run test:cov
-```
+## Environment Setup
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+1. Create env file from template:
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+cp .env.example .env
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+2. Fill required values, especially:
 
-## Resources
+- `JWT_ACCESS_SECRET`
+- `JWT_REFRESH_SECRET`
+- `JWT_VERIFIED_SECRET`
+- `EMAIL_USER`
+- `EMAIL_PASS`
 
-Check out a few resources that may come in handy when working with NestJS:
+## Run Locally
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+```bash
+npm install
+npm run start:dev
+```
 
-## Support
+URLs:
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+- API: http://localhost:8001/api
+- Swagger: http://localhost:8001/api/docs
 
-## Stay in touch
+## Run With Docker Compose
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+```bash
+docker compose up --build
+```
 
-## License
+This starts:
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+- `api` on port `8001`
+- `mongo` on container `27017` mapped to host `27018`
+- `redis` on port `6379`
+
+If this is the first run, initialize MongoDB replica set once:
+
+```bash
+docker exec -it task_manager_db mongosh --eval "rs.initiate()"
+```
+
+## Scripts
+
+- `npm run build`
+- `npm run start`
+- `npm run start:dev`
+- `npm run start:debug`
+- `npm run start:prod`
+- `npm run lint`
+- `npm run format`
+- `npm run test`
+- `npm run test:watch`
+- `npm run test:cov`
+- `npm run test:e2e`
+
+## Notes
+
+- Global API prefix is `api`.
+- CORS origin is read from `CLIENT_URL`.
+- Queue workers and automation features require Redis.
+- Reminder cron is configured in code to run daily at 08:00.

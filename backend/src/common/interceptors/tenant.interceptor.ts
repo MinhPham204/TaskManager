@@ -8,12 +8,12 @@ import { Observable } from 'rxjs';
 import { tenantStorage } from '../als/tenant-storage';
 
 /**
- * TenantInterceptor — chạy SAU Guards (JwtAuthGuard đã set req.user).
+ * TenantInterceptor - chạy sau Guards (JwtAuthGuard đã set req.user).
  *
- * Extracts organizationId từ req.user.organization (populated object hoặc raw ObjectId)
- * → Gọi tenantStorage.run() để set ALS context cho toàn bộ request lifecycle.
+ * Extracts organizationId từ req.user.organization.
+ * => Gọi tenantStorage.run() để set ALS context cho toàn bộ request lifecycle.
  *
- * Kết quả: Mọi Mongoose query trong request này tự động có org filter.
+ * => Mọi Mongoose query trong request tự động có org filter.
  *
  * Public routes (không có user): bỏ qua, không set context.
  */
@@ -27,8 +27,6 @@ export class TenantInterceptor implements NestInterceptor {
     const user = req.user;
     if (!user) return next.handle();
 
-    // organization có thể là populated object { _id: ObjectId, ... }
-    // hoặc raw ObjectId từ JWT payload
     const org = user['organization'] as
       | { _id?: { toString(): string } }
       | { toString(): string }
@@ -47,7 +45,7 @@ export class TenantInterceptor implements NestInterceptor {
       return next.handle();
     }
 
-    // Wrap handler trong ALS context — mọi async operation kế thừa context này
+    // Wrap handler trong ALS context -> mọi async operation kế thừa context này
     return new Observable((subscriber) => {
       tenantStorage.run({ organizationId: orgId! }, () => {
         next.handle().subscribe({

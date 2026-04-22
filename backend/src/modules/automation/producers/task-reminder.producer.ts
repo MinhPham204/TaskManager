@@ -16,9 +16,6 @@ export interface TaskReminderPayload {
   assignedEmails: string[];
 }
 
-/**
- * Kiểu dữ liệu sau khi populate assignedTo và organization.
- */
 interface PopulatedTask {
   _id: Types.ObjectId;
   title: string;
@@ -35,10 +32,10 @@ interface PopulatedTask {
  * rồi đẩy từng job vào queue 'task-reminder' kèm đủ data để Worker gửi email.
  *
  * Lưu ý Multi-tenancy:
- * - Cron chạy NGOÀI HTTP lifecycle → KHÔNG có ALS context.
+ * - Cron chạy NGOÀI HTTP lifecycle -> KHÔNG có ALS context.
  * - TenantPlugin bypass filter khi không có context (tenant.plugin.ts:27)
- *   → taskModel.find() trả về task của TẤT CẢ organizations.
- * - organizationId từ task.organization → đưa vào job payload
+ *  -> taskModel.find() trả về task của TẤT CẢ organizations.
+ * - organizationId từ task.organization -> đưa vào job payload
  *   để Consumer tái tạo ALS context khi xử lý.
  */
 @Injectable()
@@ -54,8 +51,7 @@ export class TaskReminderProducer {
   ) {}
 
   /**
-   * Chạy mỗi 1 phút để test.
-   * Production: thay bằng '0 8 * * *' (8h sáng mỗi ngày).
+   * Production: chạy vào 8h sáng mỗi ngày.
    */
   @Cron('0 8 * * *')
   async scanDueTodayTasks(): Promise<void> {
@@ -80,7 +76,7 @@ export class TaskReminderProducer {
     );
 
     // Dùng lean() để lấy plain objects — dễ type hơn HydratedDocument
-    // Không có ALS context → TenantPlugin bypass → query tất cả orgs
+    // Không có ALS context -> TenantPlugin bypass -> query tất cả orgs
     const tasks = (await this.taskModel
       .find({ dueDate: { $gte: startOfDay, $lte: endOfDay } })
       .populate('assignedTo', 'email')

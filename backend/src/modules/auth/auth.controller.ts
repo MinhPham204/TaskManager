@@ -37,27 +37,25 @@ interface RefreshUser extends AuthUser {
   rawRefreshToken: string;
 }
 
-@ApiTags('Auth') // 👉 GOM NHÓM LÊN SWAGGER UI
+@ApiTags('Auth') 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) { }
 
-  // ═══════════════════════════════════════════════════
-  // REGISTER FLOW (3 bước)
-  // ═══════════════════════════════════════════════════
+  // REGISTER (gồm 3 bước: register -> verify OTP -> set password)
 
   @Post('register')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Bước 1: Đăng ký tài khoản và gửi mã OTP tới email' })
-  @ApiResponse({ status: 200, description: 'Đã gửi mã OTP tới email' })
+  @ApiOperation({ summary: 'Step 1: Register and send OTP to email' })
+  @ApiResponse({ status: 200, description: 'Sent OTP to email' })
   register(@Body() dto: RegisterDto) {
     return this.authService.register(dto);
   }
 
   @Post('verify-otp')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Bước 2: Xác minh mã OTP' })
-  @ApiResponse({ status: 200, description: 'Xác minh thành công, trả về verifiedToken' })
+  @ApiOperation({ summary: 'Step 2: Verify OTP' })
+  @ApiResponse({ status: 200, description: 'Verification successful, returns verifiedToken' })
   verifyOtp(@Body() dto: VerifyOtpDto) {
     return this.authService.verifyOtp(dto);
   }
@@ -65,8 +63,8 @@ export class AuthController {
   @Post('set-password')
   @HttpCode(HttpStatus.CREATED)
   @ApiBearerAuth('verifiedToken')
-  @ApiOperation({ summary: 'Bước 3: Đặt mật khẩu để hoàn tất tạo tài khoản' })
-  @ApiResponse({ status: 201, description: 'Tạo tài khoản thành công' })
+  @ApiOperation({ summary: 'Step 3: Set password to complete account creation' })
+  @ApiResponse({ status: 201, description: 'Account created successfully' })
   setPassword(
     @Req() req: any, 
     @Body() dto: SetPasswordDto,
@@ -77,23 +75,21 @@ export class AuthController {
     
     return this.authService.setPassword(verifiedToken, dto);
   }
-  // ═══════════════════════════════════════════════════
-  // LOGIN / LOGOUT / REFRESH
-  // ═══════════════════════════════════════════════════
+  // Login, Logout, Refresh Token
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Đăng nhập vào hệ thống' })
-  @ApiResponse({ status: 200, description: 'Trả về accessToken và refreshToken' })
+  @ApiOperation({ summary: 'Login to the system' })
+  @ApiResponse({ status: 200, description: 'Returns accessToken and  refreshToken' })
   login(@Body() dto: LoginDto) {
     return this.authService.login(dto);
   }
 
   @Post('logout')
   @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth('accessToken') // 
+  @ApiBearerAuth('accessToken') 
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Đăng xuất' })
+  @ApiOperation({ summary: 'Logout from the system' })
   logout(@GetUser('_id') userId: { toString(): string }) {
     return this.authService.logout(userId.toString());
   }
@@ -102,7 +98,7 @@ export class AuthController {
   @UseGuards(JwtRefreshGuard)
   @ApiBearerAuth()
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Cấp lại Access Token mới bằng Refresh Token' })
+  @ApiOperation({ summary: 'Refresh access token using refresh token' })
   refreshTokens(@GetUser() user: RefreshUser) {
     return this.authService.refreshTokens(
       user._id.toString(),
@@ -110,14 +106,11 @@ export class AuthController {
     );
   }
 
-  // ═══════════════════════════════════════════════════
-  // PROFILE
-  // ═══════════════════════════════════════════════════
-
+  // Profile & Change Password 
   @Get('me')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('accessToken')
-  @ApiOperation({ summary: 'Lấy thông tin profile của user hiện tại' })
+  @ApiOperation({ summary: 'Get current user profile' })
   getMe(@GetUser() user: AuthUser) {
     return this.authService.getProfile(user._id.toString());
   }
@@ -125,7 +118,7 @@ export class AuthController {
   @Patch('profile')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('accessToken')
-  @ApiOperation({ summary: 'Cập nhật thông tin cá nhân (tên, avatar)' })
+  @ApiOperation({ summary: 'Update personal information (name, avatar)' })
   updateProfile(
     @GetUser('_id') userId: { toString(): string },
     @Body() dto: UpdateUserDto,
@@ -137,7 +130,7 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('accessToken')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Đổi mật khẩu khi đang đăng nhập' })
+  @ApiOperation({ summary: 'Change password while logged in' })
   changePassword(
     @GetUser('_id') userId: { toString(): string },
     @Body() dto: ChangePasswordDto,
@@ -145,20 +138,18 @@ export class AuthController {
     return this.authService.changePassword(userId.toString(), dto);
   }
 
-  // ═══════════════════════════════════════════════════
-  // FORGOT / RESET PASSWORD
-  // ═══════════════════════════════════════════════════
+  // forgot & reset password 
 
   @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Quên mật khẩu: Gửi link/OTP reset pass về email' })
+  @ApiOperation({ summary: 'Forgot password: Send reset link/OTP to email' })
   forgotPassword(@Body() dto: ForgotPasswordDto) {
     return this.authService.forgotPassword(dto.email);
   }
 
   @Post('reset-password')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Đặt lại mật khẩu mới bằng token reset' })
+  @ApiOperation({ summary: 'Reset password using reset token' })
   resetPassword(@Body() dto: ResetPasswordDto) {
     return this.authService.resetPassword(dto);
   }

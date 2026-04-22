@@ -29,7 +29,7 @@ export class CreateTaskDto {
   @IsEnum(TaskPriority)
   priority?: TaskPriority;
 
-  /** Hạn hoàn thành (ISO 8601) */
+  /** Hạn hoàn thành */
   @ApiProperty({ example: '2026-05-01' })
   @IsDateString()
   dueDate: string;

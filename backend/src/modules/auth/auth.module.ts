@@ -23,7 +23,7 @@ import { User, UserSchema } from '../user/schemas/user.schema';
       { name: Organization.name, schema: OrganizationSchema },
     ]),
 
-    // JwtModule: cấu hình access token mặc định
+    // cấu hình access token mặc định
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: (config: ConfigService) => ({
@@ -35,7 +35,7 @@ import { User, UserSchema } from '../user/schemas/user.schema';
       inject: [ConfigService],
     }),
 
-    // UserModule export MongooseModule(User) → strategies có thể @InjectModel(User)
+    // UserModule export MongooseModule(User) -> strategies có thể @InjectModel(User)
     UserModule,
   ],
   controllers: [AuthController],

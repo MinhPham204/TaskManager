@@ -32,8 +32,8 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   }
 
   /**
-   * Được gọi sau khi passport verify JWT thành công.
-   * Return value sẽ được gắn vào req.user.
+   * Gọi sau khi passport verify JWT thành công
+   * Return value gắn vào req.user.
    */
   async validate(payload: JwtPayload): Promise<UserDocument | null> {
     const user = await this.userModel

@@ -9,7 +9,7 @@ export enum TeamMemberRole {
   MEMBER = 'TEAM_MEMBER',
 }
 
-// ─── Sub-document: TeamMember ───────────────────────────────────────────────
+// Team Member Subdocument
 @Schema({ _id: false })
 export class TeamMember {
   @ApiProperty({ type: 'string', example: '69d0f8dcbb246f2d11895ca7' })
@@ -27,7 +27,7 @@ export class TeamMember {
 }
 export const TeamMemberSchema = SchemaFactory.createForClass(TeamMember);
 
-// ─── Sub-document: PendingInvitation ─────────────────────────────────────────
+// Pending Invitation Subdocument
 @Schema({ _id: false })
 export class PendingInvitation {
   @ApiProperty()
@@ -53,7 +53,7 @@ export class PendingInvitation {
 export const PendingInvitationSchema =
   SchemaFactory.createForClass(PendingInvitation);
 
-// ─── Main Schema ──────────────────────────────────────────────────────────────
+// Main Team Schema
 @Schema({ timestamps: true })
 export class Team {
   @Prop({
@@ -75,20 +75,20 @@ export class Team {
   @Prop({ type: [PendingInvitationSchema], default: [] })
   pendingInvitations!: PendingInvitation[];
 
-  /** Tự động inject bởi TenantPlugin — KHÔNG truyền thủ công */
+  /** Tự động inject bởi TenantPlugin, không truyền thủ công */
   @Prop({ type: Types.ObjectId, ref: 'Organization', required: true })
   organization!: Types.ObjectId;
+
 }
 
 export const TeamSchema = SchemaFactory.createForClass(Team);
-TeamSchema.index({ name: 1, organization: 1 }, { unique: true });
 
-// ─── Pre-save Hook: auto-add owner vào members array ─────────────────────────
-// Dùng async function (Mongoose 7+ standard) thay vì callback next()
-TeamSchema.pre('save', function () {
-  if (this.isNew && this.members.length === 0) {
-    // Không có members nào được set → Team vừa tạo nhưng chưa có owner
-    // Skip: owner sẽ được add bởi service.create()
-    // vì lúc này this.save() chưa gọi, schema không có owner ObjectId
-  }
-});
+// Tối ưu prefix organization
+TeamSchema.index({ organization: 1, name: 1 }, { unique: true });
+
+// Tối ưu cho API lấy danh sách toàn bộ team có sort
+TeamSchema.index({ organization: 1, createdAt: -1 });
+
+// Tối ưu cho API getMyTeams (tìm team mà user đang là thành viên)
+// TeamSchema.index({ organization: 1, "members.user": 1 });
+

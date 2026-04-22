@@ -9,11 +9,11 @@ import { TaskReminderConsumer } from './consumers/task-reminder.consumer';
 import { NotificationConsumer } from './consumers/notification.consumer';
 
 /**
- * AutomationModule — Giai đoạn 4 + 5: Automation & Notifications.
+ * AutomationModule: Automation & Notifications.
  *
  * Bao gồm:
- * - BullMQ queue 'task-reminder' (Producer + Consumer/Worker) [Stage 4]
- * - BullMQ queue 'notification' (Consumer/Worker) [Stage 5]
+ * - BullMQ queue 'task-reminder' (Producer + Consumer/Worker)
+ * - BullMQ queue 'notification' (Consumer/Worker)
  * - Cron Job quét Task có dueDate = hôm nay (mỗi 1 phút)
  * - Worker tái tạo ALS context qua TenantStorageService.run()
  *
@@ -21,12 +21,12 @@ import { NotificationConsumer } from './consumers/notification.consumer';
  */
 @Module({
   imports: [
-    // Đăng ký queue 'task-reminder' — Stage 4: Task Due Reminder
+    // Đăng ký queue 'task-reminder'
     BullModule.registerQueue({
       name: TASK_REMINDER_QUEUE,
     }),
 
-    // Đăng ký queue 'notification' — Stage 5: Approval Request Emails
+    // Đăng ký queue 'notification'
     BullModule.registerQueue({
       name: NOTIFICATION_QUEUE,
     }),
@@ -39,9 +39,9 @@ import { NotificationConsumer } from './consumers/notification.consumer';
     ]),
   ],
   providers: [
-    TaskReminderProducer,   // Cron Job + Queue Producer (Stage 4)
-    TaskReminderConsumer,   // BullMQ Worker: gửi reminder email (Stage 4)
-    NotificationConsumer,   // BullMQ Worker: gửi approval-request email (Stage 5)
+    TaskReminderProducer,   // Cron Job + Queue Producer 
+    TaskReminderConsumer,   // BullMQ Worker: gửi reminder email 
+    NotificationConsumer,   // BullMQ Worker: gửi approval-request email 
   ],
 })
 export class AutomationModule {}

@@ -157,8 +157,7 @@ export class TeamController {
     });
   }
 
-  // ─── MEMBER MANAGEMENT ───────────────────────────────────────────────────────
-
+  // Quản lý thành viên trong team
   /**
    * Thêm thành viên vào team.
    * User phải thuộc cùng Organization — được enforce tự động bởi ALS plugin.

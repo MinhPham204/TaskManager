@@ -16,6 +16,7 @@ import { UserModule } from './modules/user/user.module';
 import { TaskModule } from './modules/task/task.module';
 import { TeamModule } from './modules/team/team.module';
 import { AutomationModule } from './modules/automation/automation.module';
+import { SeederModule } from './modules/seeder/seeder.module';
 
 @Module({
   imports: [
@@ -34,9 +35,7 @@ import { AutomationModule } from './modules/automation/automation.module';
     }),
 
     /**
-     * BullMQ — kết nối Redis Cloud.
-     * Dùng ConfigService để đọc REDIS_HOST, REDIS_PORT, REDIS_PASSWORD từ .env.
-     * Ép kiểu REDIS_PORT sang number (parseInt) vì env vars mặc định là string.
+     * BullMQ - Connect Redis Cloud.
      */
     BullModule.forRootAsync({
       imports: [ConfigModule],
@@ -50,7 +49,6 @@ import { AutomationModule } from './modules/automation/automation.module';
       inject: [ConfigService],
     }),
 
-    // Bật @nestjs/schedule để dùng @Cron trong TaskReminderProducer
     ScheduleModule.forRoot(),
 
     SharedModule,
@@ -60,6 +58,7 @@ import { AutomationModule } from './modules/automation/automation.module';
     TaskModule,
     TeamModule,
     AutomationModule,
+    SeederModule,
   ],
   controllers: [],
   providers: [

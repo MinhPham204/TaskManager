@@ -7,7 +7,7 @@ export const ROLES_KEY = 'roles';
  * Decorator @Roles(...roles) — gắn metadata danh sách role được phép.
  * Dùng kết hợp với RolesGuard.
  *
- * Ví dụ:
+ * Flow:
  *   @Roles(UserRole.ADMIN, UserRole.OWNER)
  *   @UseGuards(JwtAuthGuard, RolesGuard)
  *   @Patch(':id/approve')

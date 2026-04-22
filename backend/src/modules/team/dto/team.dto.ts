@@ -32,7 +32,6 @@ export class PaginationDto {
 }
 
 export class CreateTeamDto {
-  /** Tên team (phải unique trong org) */
   @ApiProperty({ example: 'Frontend Squad' })
   @IsString()
   @IsNotEmpty()
@@ -40,13 +39,11 @@ export class CreateTeamDto {
   @MaxLength(100)
   name!: string;
 
-  /** Mô tả team */
   @ApiPropertyOptional({ example: 'Responsible for all UI components' })
   @IsOptional()
   @IsString()
   description?: string;
 
-  /** URL logo team */
   @ApiPropertyOptional({ example: 'https://cdn.example.com/logo.png' })
   @IsOptional()
   @IsUrl()
@@ -82,7 +79,6 @@ export class UpdateTeamDto {
 }
 
 export class AddMemberDto {
-  /** ID của user cần thêm (phải thuộc cùng Organization) */
   @ApiProperty({ example: '6630a1b2c3d4e5f6a7b8c9d0' })
   @IsString()
   @IsNotEmpty()
@@ -90,13 +86,11 @@ export class AddMemberDto {
 }
 
 export class InviteMemberDto {
-  /** Email của người được mời */
   @ApiProperty({ example: 'dev@company.com' })
   @IsString()
   @IsNotEmpty()
   email!: string;
 
-  /** Role khi gia nhập team */
   @ApiPropertyOptional({ enum: TeamMemberRole, default: TeamMemberRole.MEMBER })
   @IsOptional()
   @IsEnum(TeamMemberRole)

@@ -20,15 +20,15 @@ export const redisProvider = {
     });
 
     client.on('connect', () => {
-      console.log('✅ Connected to Redis');
+      console.log('Connected to Redis');
     });
 
     client.on('error', (err) => {
-      console.error('❌ Redis Client Error:', err.message);
+      console.error('Redis Client Error:', err.message);
     });
 
     client.on('reconnecting', () => {
-      console.warn('⚠️  Redis reconnecting...');
+      console.warn('Redis reconnecting...');
     });
 
     return client;

@@ -11,25 +11,21 @@ import { ApprovalRequestPayload } from '../../task/task.service';
 import { NOTIFICATION_QUEUE } from '../constants/queues';
 
 /**
- * NotificationConsumer — BullMQ Worker xử lý queue 'notification'.
+ * NotificationConsumer — BullMQ Worker xử lý queue notification
  *
- * ═══════════════════════════════════════════════════════════════
- * LUỒNG XỬ LÝ JOB 'approval-request'
- * ═══════════════════════════════════════════════════════════════
+ * Flow xử lý job 'approval-request'
  *
  * 1. Member gọi PATCH /tasks/:id/submit
- *    → TaskService.submitForApproval() đẩy job vào NOTIFICATION_QUEUE
+ *    -> TaskService.submitForApproval() đẩy job vào NOTIFICATION_QUEUE
  *
  * 2. Worker nhận job 'approval-request' với payload:
  *    { taskId, taskTitle, organizationId, submittedByName, type }
  *
  * 3. Tái tạo ALS context qua tenantStorageService.run(organizationId)
- *    → TenantPlugin tự inject { organization: orgId } vào mọi Mongoose query
+ *    -> TenantPlugin tự inject { organization: orgId } vào mọi Mongoose query
  *
  * 4. Query tất cả Users có role ADMIN hoặc OWNER trong org đó
- *    → Gửi email approval-request đến từng admin
- *
- * ═══════════════════════════════════════════════════════════════
+ *    -> Gửi email approval-request đến từng admin
  */
 @Processor(NOTIFICATION_QUEUE)
 export class NotificationConsumer extends WorkerHost {
@@ -45,7 +41,6 @@ export class NotificationConsumer extends WorkerHost {
 
   /**
    * Entry point cho mọi job trong queue 'notification'.
-   * Dispatch theo job.name để dễ mở rộng thêm job type sau này.
    */
   async process(job: Job<ApprovalRequestPayload>): Promise<void> {
     this.logger.log(
@@ -64,14 +59,14 @@ export class NotificationConsumer extends WorkerHost {
     }
   }
 
-  // ─── Handler: approval-request ────────────────────────────────────────────────
+  // Handler approval request 
   /**
    * Gửi email thông báo đến tất cả Admin/Owner trong org khi Member nộp task.
    *
    * Flow:
-   *   tenantStorageService.run(orgId) → ALS context được tái tạo
-   *     → UserModel.find({ role: admin/owner }) → TenantPlugin tự filter theo org
-   *       → emailService.sendApprovalRequestEmail() cho từng admin
+   *   tenantStorageService.run(orgId) -> ALS context được tái tạo
+   *     -> UserModel.find({ role: admin/owner }) -> TenantPlugin tự filter theo org
+   *       -> emailService.sendApprovalRequestEmail() cho từng admin
    */
   private async handleApprovalRequest(
     data: ApprovalRequestPayload,
@@ -83,7 +78,7 @@ export class NotificationConsumer extends WorkerHost {
     );
 
     await this.tenantStorageService.run(organizationId, async () => {
-      // TenantPlugin tự inject { organization: orgId } vào query này
+      // TenantPlugin tự inject { organization: orgId } vào query
       const admins = await this.userModel
         .find({ role: { $in: [UserRole.ADMIN, UserRole.OWNER] } })
         .select('email name')
@@ -110,13 +105,13 @@ export class NotificationConsumer extends WorkerHost {
         });
 
         this.logger.log(
-          `[NotificationWorker] ✅ Email sent to admin: ${admin.email}`,
+          `[NotificationWorker] Email sent to admin: ${admin.email}`,
         );
       }
     });
 
     this.logger.debug(
-      `[NotificationWorker] ✅ Finished approval-request job for Task ID: ${taskId}`,
+      `[NotificationWorker] Finished approval-request job for Task ID: ${taskId}`,
     );
   }
 }

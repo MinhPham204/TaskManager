@@ -84,8 +84,8 @@ export class OrganizationService {
   }
 
   /**
-   * Update organization - with strict tenant isolation
-   * Only the organization owner can update their own organization
+   * Update organization 
+   * Chỉ cho phép Owner của tổ chức đó mới được quyền cập nhật thông tin tổ chức (multi-tenancy isolation).
    * @param id Organization ID
    * @param dto Update data
    * @param currentUserId User ID making the request (must be owner)
@@ -102,8 +102,7 @@ export class OrganizationService {
       throw new NotFoundException(`Organization with id "${id}" not found`);
     }
 
-    // If currentUserId provided, verify ownership (multi-tenancy isolation)
-    // This prevents Owner of Org A from modifying Org B
+    // Nếu currentUserId được cung cấp, kiểm tra xem user đó có phải là owner của tổ chức không
     if (currentUserId) {
       const userObjectId = new Types.ObjectId(currentUserId);
       const isOwner = org.owner.equals(userObjectId);
@@ -188,7 +187,7 @@ export class OrganizationService {
       );
     }
 
-    // Add to pending invitations instead of direct add
+    // Thêm vào pending invitation trước để đảm bảo atomicity (nếu email gửi thất bại vẫn có thể retry)
     const updatedOrg = await this.orgModel.findByIdAndUpdate(
       orgId,
       { $push: { pendingInvitations: { email: email.toLowerCase(), role } } },
@@ -199,7 +198,7 @@ export class OrganizationService {
       throw new NotFoundException(`Organization with id "${orgId}" not found`);
     }
 
-    // Send invitation email with accept-invite link
+    // Gưi email mời tham gia tổ chức
     try {
       const ownerName = (org.owner as any)?.name || 'Team Member';
       await this.emailService.sendOrganizationInvitationEmail({
@@ -222,7 +221,7 @@ export class OrganizationService {
 
  /**
    * Accept organization invitation (Strict B2B Model)
-   * 1 User - 1 Organization for life. No switching allowed.
+   * 1 User - 1 Organization, không cho phép chuyển org
    */
   async acceptInvitation(
     orgId: string,
@@ -238,7 +237,7 @@ export class OrganizationService {
       throw new NotFoundException(`User with id "${userId}" not found`);
     }
 
-    // Step 1: Verify pending invitation exists
+    // 1. Verify pending invitation exists
     const pendingInvIndex = newOrg.pendingInvitations.findIndex(
       (inv) => inv.email.toLowerCase() === user.email.toLowerCase(),
     );
@@ -249,7 +248,7 @@ export class OrganizationService {
       );
     }
 
-    // Verify not already a member of new org
+    // 2. Verify not already a member of new org
     const alreadyInNewOrg = newOrg.members.some((memberId) =>
       memberId.equals(user._id),
     );
@@ -261,7 +260,7 @@ export class OrganizationService {
 
     const invitedRole = newOrg.pendingInvitations[pendingInvIndex].role;
 
-    // ─── STEP 2: STRICT B2B CHECK ─────────────
+    // STRICT B2B CHECK
     // Nếu user đã thuộc về một công ty khác (organization khác null và khác orgId mới)
     if (user.organization && !user.organization.equals(newOrg._id)) {
       throw new ForbiddenException(
@@ -269,7 +268,7 @@ export class OrganizationService {
       );
     }
 
-    // Step 3: Join new organization
+    // Join new organization
     // Remove from pending invitations and add to members
     const updatedNewOrg = await this.orgModel.findByIdAndUpdate(
       orgId,
@@ -298,7 +297,7 @@ export class OrganizationService {
 
   /**
    * Update member role in organization
-   * Only organization owner can change member roles
+   * Chỉ ORG_OWNER hoặc ORG_ADMIN mới có quyền thay đổi role của thành viên khác (không được phép thay đổi role của chính mình)
    * @param orgId Organization ID
    * @param userId User ID whose role to update
    * @param newRole New role ('admin' or 'member')

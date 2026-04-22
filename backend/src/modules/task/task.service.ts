@@ -22,7 +22,6 @@ import {
   RejectTaskDto,
 } from './dto/update-task.dto';
 
-// ─── Types cho Workload Report ────────────────────────────────────────────────
 export interface StatusStat {
   status: string;
   count: number;
@@ -63,7 +62,7 @@ export class TaskService {
   constructor(
     @InjectModel(Task.name) private readonly taskModel: Model<TaskDocument>,
     @InjectModel(Team.name) private readonly teamModel: Model<TeamDocument>,
-    @InjectModel(User.name) private readonly userModel: Model<UserDocument>, // Dùng để validate assignees
+    @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
     private readonly tenantStorage: TenantStorageService,
     @InjectQueue(NOTIFICATION_QUEUE)
     private readonly notificationQueue: Queue<ApprovalRequestPayload>,
@@ -96,9 +95,9 @@ export class TaskService {
 
   /**
    * Lớp phòng thủ 2 cho toàn bộ API mutate task.
-   * Quy tắc:
+   * note:
    * - TEAM_LEAD của team chứa task: được thao tác.
-   * - Hoặc user là người tạo task / người được assign task: được thao tác.
+   * - user là người tạo task / người được assign task: được thao tác.
    * - KHÔNG bypass cho ORG_ADMIN / ORG_OWNER.
    */
   private async ensureTaskMutationAccess(
@@ -139,7 +138,7 @@ export class TaskService {
   }
 
   /**
-   * Kiểm tra quyền tạo task trong team:
+   * Check quyền tạo task trong team:
    * user phải là thành viên của team đó (TEAM_LEAD hoặc TEAM_MEMBER).
    */
   private async ensureCreateTaskAccess(
@@ -168,7 +167,7 @@ export class TaskService {
 
     const uniqueAssigneeIds = [...new Set(assigneeIds)];
     
-    // Vì có tenantStorage nên lệnh này tự động chỉ tìm trong Org hiện tại
+    // Tự động chỉ tìm trong Org hiện tại (Vì có tenantStorage)
     const validUsersCount = await this.userModel.countDocuments({
       _id: { $in: uniqueAssigneeIds },
       isActive: true, 
@@ -236,7 +235,7 @@ export class TaskService {
     ]);
 
 
-    // 4. Format dữ liệu trả về giống hệt cấu trúc cũ của Minh
+    // 4. Format dữ liệu trả về 
     const allStatuses = ['Pending', 'In Progress', 'Completed'];
     const allPriorities = ['Low', 'Medium', 'High'];
 
@@ -379,11 +378,11 @@ export class TaskService {
     };
   }
 
-  /** Dashboard cho TEAM_MEMBER (scope cá nhân theo assigned tasks). */
+  /** Dashboard cho TEAM_MEMBER */
   async getTeamMemberDashboard(userId: string): Promise<any> {
     return this.getDashboardData(userId);
   }
-  // ─── CREATE ──────────────────────────────────────────────────────────────────
+  // Create task
   async create(dto: CreateTaskDto, currentUser: TaskActor): Promise<TaskDocument> {
     // Đảm bảo user thuộc org trước khi tạo → lỗi rõ ràng thay vì Mongoose ValidationError
     this.tenantStorage.requireOrganizationId();
@@ -391,20 +390,20 @@ export class TaskService {
     await this.ensureCreateTaskAccess(dto.team, currentUser);
     const validAssignees = await this.validateAssignees(dto.assignedTo ?? []);
 
-    // Plugin tự filter team theo org hiện tại → 404 nếu team thuộc org khác
+    // Plugin tự filter team theo org hiện tại
 
     const task = new this.taskModel({
       ...dto,
       team: new Types.ObjectId(dto.team),
       assignedTo: validAssignees,
       createdBy: new Types.ObjectId(currentUser.userId),
-      // organization: KHÔNG set — plugin tự inject qua pre('validate')
+      // organization: không set — plugin tự inject qua pre('validate')
     });
 
     return task.save();
   }
 
-  // ─── READ ─────────────────────────────────────────────────────────────────────
+  // Read
   async findAll(filters?: {
     status?: TaskStatus;
     assignedTo?: string;
@@ -437,7 +436,7 @@ export class TaskService {
     return task;
   }
 
-  // ─── UPDATE ───────────────────────────────────────────────────────────────────
+  // Update
   async update(
     id: string,
     dto: UpdateTaskDto,
@@ -449,7 +448,7 @@ export class TaskService {
 
     // 1. Kiểm tra Team hợp lệ (nếu có yêu cầu update Team)
     if (dto.team) {
-      // Có tenant plugin, lệnh findById này sẽ tự động chỉ tìm trong Org hiện tại
+      // Có tenant plugin => FindById chỉ tìm trong Org hiện tại 
       const team = await this.teamModel.findById(dto.team);
       if (!team) {
         throw new NotFoundException('Team không tồn tại trong Tổ chức của bạn');
@@ -515,7 +514,7 @@ export class TaskService {
     return task;
   }
 
-  // ─── APPROVAL SYSTEM (Giai đoạn 5) ──────────────────────────────────────────
+  // Submit for approval, Approve, Reject
   /**
    * Member nộp task để Admin/Owner phê duyệt.
    * Điều kiện: task phải đang ở trạng thái IN_PROGRESS.
@@ -555,7 +554,7 @@ export class TaskService {
   /**
    * Admin/Owner phê duyệt task.
    * Điều kiện: task phải đang ở trạng thái PENDING_APPROVAL.
-   * Sau khi approve: status → COMPLETED, progress = 100, approvedBy = adminId.
+   * Sau khi approve: status -> COMPLETED, progress = 100, approvedBy = adminId.
    */
   async approveTask(taskId: string, currentUser: TaskActor): Promise<TaskDocument> {
     const task = await this.ensureTaskMutationAccess(taskId, currentUser);
@@ -591,7 +590,7 @@ export class TaskService {
   /**
    * Admin/Owner từ chối task và trả về cho Member chỉnh sửa.
    * Điều kiện: task phải đang ở trạng thái PENDING_APPROVAL.
-   * Sau khi reject: status → IN_PROGRESS, rejectionReason = lý do từ chối.
+   * Sau khi reject: status -> IN_PROGRESS, rejectionReason = lý do từ chối.
    */
   async rejectTask(
     taskId: string,
@@ -627,7 +626,7 @@ export class TaskService {
     return task.save();
   }
 
-  // ─── TODO CHECKLIST ───────────────────────────────────────────────────────────
+  // Todo Checklist
   async addTodoItem(
     taskId: string,
     dto: AddTodoItemDto,
@@ -680,30 +679,30 @@ export class TaskService {
     return task;
   }
 
-  // ─── WORKLOAD REPORT (Giai đoạn 6) ──────────────────────────────────────────
+  // Workload Report
   /**
    * Báo cáo workload toàn bộ org trong 1 aggregation query ($facet).
    *
-   * ⚠️  aggregate() KHÔNG bị TenantPlugin filter tự động.
-   *     → Phải $match { organization: orgId } thủ công ở Stage đầu tiên.
+   *   aggregate() KHÔNG bị TenantPlugin filter tự động.
+   *   -> Phải $match { organization: orgId } thủ công ở Stage đầu tiên.
    *
    * Pipeline:
    *   $match (org filter)
    *   → $facet {
-   *       byStatus   : $group theo status  → đếm task
-   *       byPriority : $group theo priority → đếm task
-   *       byAssignee : $unwind → $lookup users → $group per user → đếm task
+   *       byStatus   : $group theo status  -> đếm task
+   *       byPriority : $group theo priority -> đếm task
+   *       byAssignee : $unwind -> $lookup users -> $group per user -> đếm task
    *     }
    */
   async getWorkloadReport(): Promise<WorkloadReport> {
     const orgId = this.tenantStorage.requireOrganizationId();
 
-    // aggregate() KHÔNG bị TenantPlugin filter → phải $match thủ công
+    // aggregate() Không bị TenantPlugin filter → phải $match thủ công
     const pipeline: PipelineStage[] = [
-      // Stage 1: Lọc theo org
+      // 1. Lọc theo org
       { $match: { organization: new Types.ObjectId(orgId) } },
 
-      // Stage 2: $facet — 3 luồng thống kê song song trong 1 query
+      // 2. $facet — 3 luồng thống kê song song trong 1 query
       {
         $facet: {
           // Luồng 1: Số task theo trạng thái
@@ -722,7 +721,7 @@ export class TaskService {
 
           // Luồng 3: Workload per user ($unwind + $lookup trong $facet)
           byAssignee: [
-            // $unwind: mỗi task-user pair → 1 document
+            // $unwind: mỗi task-user pair -> 1 document
             {
               $unwind: {
                 path: '$assignedTo',
@@ -776,7 +775,7 @@ export class TaskService {
     return report ?? { byStatus: [], byPriority: [], byAssignee: [] };
   }
 
-  // ─── DELETE ───────────────────────────────────────────────────────────────────
+  // Delete
   async delete(id: string, currentUser: TaskActor): Promise<{ message: string }> {
     await this.ensureTaskMutationAccess(id, currentUser);
 

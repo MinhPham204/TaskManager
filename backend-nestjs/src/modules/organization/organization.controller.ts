@@ -37,6 +37,10 @@ interface AuthUser {
 export class OrganizationController {
   constructor(private readonly orgService: OrganizationService) {}
 
+  /**
+   * GET /api/organizations
+   * TESTING ONLY: Lấy danh sách organizations mà current user đang tham gia.
+   */
   @Get()
   @ApiOperation({
     summary: '[TESTING] Get organizations of current user',
@@ -552,7 +556,8 @@ export class OrganizationController {
 
   /**
    * POST /api/organizations/:id/accept-invitation
-   * Accept pending organization invitation - chuyển user từ chưa có org sang org mới
+   * Accept pending organization invitation - moves user from old org to new org
+   * ⚠️ CRITICAL: Handles complex organization cleanup and role switching
    */
   @Post(':id/accept-invitation')
   @HttpCode(HttpStatus.OK)

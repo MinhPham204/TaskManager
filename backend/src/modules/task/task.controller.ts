@@ -92,9 +92,8 @@ export class TaskController {
 
   /**
    * Workload Analysis — ORG_OWNER/ORG_ADMIN only.
-   * MongoDB Aggregation: $match → $facet { byStatus, byPriority, byAssignee }.
+   * MongoDB Aggregation: $match -> $facet { byStatus, byPriority, byAssignee }.
    * byAssignee dùng $unwind + $lookup để lấy name/email từ users collection.
-   * ⚠️ Phải đặt TRƯỚC :id để tránh NestJS match "reports" như một param.
    */
   @ApiOperation({
     summary: 'Workload analysis report (ORG_OWNER/ORG_ADMIN only)',
@@ -263,7 +262,7 @@ export class TaskController {
   /**
    * Member nộp task để Admin/Owner phê duyệt.
    * Task phải đang ở trạng thái IN_PROGRESS.
-   * Sau khi submit: status → PENDING_APPROVAL, đẩy job vào notification-queue.
+   * Sau khi submit: status -> PENDING_APPROVAL, đẩy job vào notification-queue.
    */
   @ApiOperation({
     summary: 'Submit task for approval',
@@ -287,7 +286,7 @@ export class TaskController {
 
   /**
    * TEAM_LEAD phê duyệt task đang PENDING_APPROVAL.
-   * status → COMPLETED, progress = 100, approvedBy = adminId.
+   * status -> COMPLETED, progress = 100, approvedBy = adminId.
    */
   @ApiOperation({
     summary: 'Approve a pending task (TEAM_LEAD only)',
@@ -311,7 +310,7 @@ export class TaskController {
 
   /**
    * TEAM_LEAD từ chối task và trả về IN_PROGRESS để Member chỉnh sửa.
-   * status → IN_PROGRESS, rejectionReason = lý do.
+   * status -> IN_PROGRESS, rejectionReason = lý do.
    */
   @ApiOperation({
     summary: 'Reject a pending task (TEAM_LEAD only)',
@@ -355,8 +354,6 @@ export class TaskController {
       role: user.role,
     });
   }
-
-  // ─── Todo Checklist ──────────────────────────────────────────────────────────
 
   /** Thêm todo item vào checklist */
   @ApiOperation({

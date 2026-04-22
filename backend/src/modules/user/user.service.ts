@@ -17,7 +17,7 @@ export class UserService {
     private readonly userModel: Model<UserDocument>,
   ) {}
 
-  // ─── Tạo user mới ────────────────────────────────────────────────────────────
+  // Create user
   async create(dto: CreateUserDto): Promise<UserDocument> {
     const existing = await this.userModel.findOne({ email: dto.email });
     if (existing) {
@@ -35,7 +35,7 @@ export class UserService {
     return user.save();
   }
 
-  // ─── Tìm theo ID (loại bỏ password) ──────────────────────────────────────────
+  // Find user by ID 
   async findById(id: string): Promise<UserDocument> {
     const user = await this.userModel
       .findById(id)
@@ -48,14 +48,14 @@ export class UserService {
     return user;
   }
 
-  // ─── Tìm theo email (cho AuthService, bao gồm cả password) ───────────────────
+  // find by Email
   async findByEmailWithPassword(email: string): Promise<UserDocument | null> {
     return this.userModel
       .findOne({ email })
       .select('+password +refreshToken'); // select field ẩn
   }
 
-  // ─── Tìm theo email (không có password) ──────────────────────────────────────
+  // find by Email (không trả về password)
   async findByEmail(email: string): Promise<UserDocument | null> {
     return this.userModel
       .findOne({ email })
@@ -63,7 +63,7 @@ export class UserService {
       .populate('organization', 'name slug plan');
   }
 
-  // ─── Cập nhật thông tin user ─────────────────────────────────────────────────
+  // Update user
   async update(id: string, dto: UpdateUserDto): Promise<UserDocument> {
     const user = await this.userModel
       .findByIdAndUpdate(id, { $set: dto }, { new: true, runValidators: true })
@@ -76,7 +76,7 @@ export class UserService {
     return user;
   }
 
-  // ─── Cập nhật hash của Refresh Token ─────────────────────────────────────────
+  // Update refresh token (lưu hashed token)
   async updateRefreshToken(
     userId: string,
     refreshToken: string | null,
@@ -94,7 +94,7 @@ export class UserService {
     });
   }
 
-  // ─── Đổi mật khẩu ────────────────────────────────────────────────────────────
+  // Change password
   async changePassword(
     userId: string,
     newPassword: string,
@@ -105,7 +105,7 @@ export class UserService {
     });
   }
 
-  // ─── Lấy danh sách user trong một Org ────────────────────────────────────────
+  // Find all users in an organization
   async findByOrganization(organizationId: string): Promise<UserDocument[]> {
     return this.userModel
       .find({ organization: new Types.ObjectId(organizationId) })
